@@ -1,16 +1,14 @@
-html, body {
+html {
 	margin: 0;
 	padding: 0;
-}
-
-html {
-	color: #555;
+	color: #66757f;
 }
 
 body {
 	display: block;
 	max-width: 1024px;
 	margin: 0 auto;
+	padding: 32px;
 }
 
 main {
