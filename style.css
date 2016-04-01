@@ -1,3 +1,9 @@
 html {
 	color: #555;
 }
+
+main {
+	display: block;
+	max-width: 1024px;
+	margin: 0 auto;
+}
