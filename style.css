@@ -23,5 +23,9 @@ main > article > h1 {
 	font-weight: bold;
 }
 
+main > article section {
+	margin: 42px 0;
+}
+
 footer {
 }
