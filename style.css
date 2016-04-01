@@ -12,6 +12,10 @@ body {
 	padding: 32px;
 }
 
+a {
+	color: #4a8bb7;
+}
+
 main {
 	display: block;
 }
