@@ -1,35 +1,73 @@
-html {
+html, body {
 	margin: 0;
 	padding: 0;
-	color: #66757f;
-}
-
-body {
-	display: block;
-	box-sizing: border-box;
-	max-width: 1000px;
-	margin: 0 auto;
-	padding: 32px;
-}
-
-a {
-	color: #4a8bb7;
+	font-family: '游ゴシック', 'YuGothic', 'ヒラギノ角ゴ ProN W3', 'Hiragino Kaku Gothic ProN', 'Meiryo', 'メイリオ', sans-serif;
+	color: #fff;
+	background: #94b7b4;
 }
 
 main {
 	display: block;
+	text-align: center;
 }
 
-main > article > h1 {
-	margin: 0 0 16px 0;
-	padding: 0;
+h1 {
+	display: block;
+	margin: 0;
+	padding: 1em;
 	font-size: 2em;
-	font-weight: bold;
+	font-weight: normal;
 }
 
-main > article section {
-	margin: 42px 0;
+#avatar {
+	display: block;
+	margin: 0 auto;
+	max-width: 128px;
+	border-radius: 100%;
 }
+
+#bio {
+	display: block;
+	margin: 0;
+	padding: 1em;
+}
+
+#links {
+	display: block;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	font-size: 0;
+}
+	#links li {
+		display: inline-block;
+		margin: 0 8px;
+		padding: 0;
+		font-size: 1rem;
+	}
+		#links li a {
+			display: inline-block;
+			margin: 0;
+			padding: 0;
+			font-size: 1.5em;
+			color: #fff;
+			border: solid 1px #fff;
+			border-radius: 100%;
+			transition: all 0.2s ease;
+		}
+		#links li a:hover {
+			background: #fff;
+			color: #94b7b4;
+		}
+			#links li a i {
+				display: inline-block;
+				width: 2em;
+				line-height: 2em;
+				text-align: center;
+			}
 
 footer {
+	display: block;
+	padding: 1em;
+	text-align: center;
 }
