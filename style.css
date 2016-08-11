@@ -11,21 +11,25 @@ html, body {
 main {
 	display: block;
 	text-align: center;
+	max-width: 512px;
+	margin: 0 auto;
+	padding: 0px 16px;
 }
 
 h1 {
 	display: block;
 	margin: 0;
-	padding: 1em;
+	padding: 0;
 	font-size: 2em;
 	font-weight: normal;
 }
 
 #avatar {
 	display: block;
-	margin: 0 auto;
+	margin: 64px auto 32px auto;
 	max-width: 128px;
 	border-radius: 100%;
+	box-shadow: 0 0 0 8px #8caba8;
 }
 
 #bio {
@@ -36,7 +40,7 @@ h1 {
 
 #links {
 	display: block;
-	margin: 0;
+	margin: 64px 0;
 	padding: 0;
 	list-style: none;
 	font-size: 0;
