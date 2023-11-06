@@ -1,0 +1,16 @@
+{
+	"main": "./built/build.js",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "tsc",
+		"start": "node ./built/build.js"
+	},
+	"dependencies": {
+		"@types/node": "20.8.10",
+		"@types/sharp": "0.32.0",
+		"exifreader": "^4.16.0",
+		"sharp": "0.32.6",
+		"typescript": "5.2.2"
+	}
+}

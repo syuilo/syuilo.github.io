@@ -1,0 +1,71 @@
+@charset "utf8";
+
+html, body {
+	margin: 0;
+	padding: 0;
+	font-family: '游ゴシック', 'YuGothic', 'ヒラギノ角ゴ ProN W3', 'Hiragino Kaku Gothic ProN', 'Meiryo', 'メイリオ', sans-serif;
+	color: #333;
+	background: #dce0e5;
+}
+
+._gallery {
+	position: relative;
+	text-align: center;
+	padding: 64px 128px 128px 128px;
+}
+	._gallery > h2 {
+		margin: 0;
+		padding: 64px;
+		font-size: 38px;
+		font-weight: bold;
+	}
+	._gallery > .grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr 1fr;
+		gap: 64px;
+		align-items: center;
+		max-width: 1300px;
+		margin: 0 auto;
+	}
+		._gallery > .grid > div > a {
+			display: block;
+			width: 100%;
+		}
+			._gallery > .grid > div > a > img {
+				max-height: 400px;
+				max-width: 100%;
+				margin: auto;
+				display: block;
+			}
+	._gallery > aside {
+		margin-top: 64px;
+		padding: 64px;
+		background: #0c0d0e;
+		background-size: auto auto;
+		background-image: repeating-linear-gradient(135deg, transparent, transparent 4px, #090a0a 4px, #090a0a 20px);
+	}
+
+.photo {
+	min-width: 0;
+	padding: 20px 20px 20px 20px;
+	background: #fff;
+	color: #000;
+}
+
+.photo-title {
+	display: block;
+	font-family: 'Noto Serif JP', serif;
+	word-wrap: break-word;
+	margin-bottom: 16px;
+}
+
+.photo-metadata {
+	display: block;
+	font-family: 'Roboto', sans-serif;
+	font-size: 14px;
+	margin-top: 16px;
+	opacity: 0.75;
+}
+.photo-metadata > span {
+	margin: 0 0.5em;
+}
