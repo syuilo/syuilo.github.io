@@ -11,7 +11,7 @@ html, body {
 ._gallery {
 	position: relative;
 	text-align: center;
-	padding: 64px 128px 128px 128px;
+	padding: 30px;
 }
 	._gallery > h2 {
 		margin: 0;
@@ -21,7 +21,7 @@ html, body {
 	}
 	._gallery > .grid {
 		display: grid;
-		grid-template-columns: 1fr 1fr 1fr;
+		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 		gap: 64px;
 		align-items: center;
 		max-width: 1300px;
