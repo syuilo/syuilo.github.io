@@ -11,7 +11,7 @@ html, body {
 ._gallery {
 	position: relative;
 	text-align: center;
-	padding: 30px;
+	padding: 50px;
 }
 	._gallery > h2 {
 		margin: 0;
@@ -22,9 +22,9 @@ html, body {
 	._gallery > .grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-		gap: 64px;
+		gap: 40px;
 		align-items: center;
-		max-width: 1300px;
+		max-width: 1289px;
 		margin: 0 auto;
 	}
 		._gallery > .grid > div > a {
@@ -45,6 +45,13 @@ html, body {
 		background-image: repeating-linear-gradient(135deg, transparent, transparent 4px, #090a0a 4px, #090a0a 20px);
 	}
 
+
+@media (max-width: 1300px) {
+	._gallery > .grid {
+		gap: 30px;
+	}
+}
+
 .photo {
 	min-width: 0;
 	padding: 20px 20px 20px 20px;
@@ -52,11 +59,22 @@ html, body {
 	color: #000;
 }
 
+.photo:target {
+	border: solid 2px #000;
+}
+
 .photo-title {
 	display: block;
 	font-family: 'Noto Serif JP', serif;
 	word-wrap: break-word;
 	margin-bottom: 16px;
+	color: inherit;
+	text-decoration: none;
+}
+.photo-title > small {
+	display: block;
+	font-size: 12px;
+	opacity: 0.75;
 }
 
 .photo-metadata {
@@ -66,6 +84,16 @@ html, body {
 	margin-top: 16px;
 	opacity: 0.75;
 }
-.photo-metadata > span {
-	margin: 0 0.5em;
+
+.photo-metadata span {
+	margin: 0 0.3em;
 }
+
+/*
+.photo-metadata > .right {
+	margin-left: auto;
+}
+.photo-metadata > .right span {
+	margin: 0 0.3em;
+}
+*/
