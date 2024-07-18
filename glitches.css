@@ -68,6 +68,9 @@ html, body {
 	color: #fff;
 	border-radius: 0;
 }
+.photo.hidden {
+	display: none;
+}
 
 .photo:target {
 	border: solid 2px #f00;
