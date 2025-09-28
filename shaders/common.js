@@ -103,7 +103,7 @@ function makeGl(canvas, vertexShader, fragmentShader) {
 	canvas.width = width * pixelRatio;
 	canvas.height = height * pixelRatio;
 
-	const gl = canvas.getContext('webgl2', { preserveDrawingBuffer: false, alpha: true, premultipliedAlpha: false, antialias: true });
+	const gl = canvas.getContext('webgl2', { preserveDrawingBuffer: false, alpha: true, premultipliedAlpha: true, antialias: true });
 
 	const VERTICES = new Float32Array([-1, -1, -1, 1, 1, 1, -1, -1, 1, 1, 1, -1]);
 	const vertexBuffer = gl.createBuffer();
@@ -153,10 +153,6 @@ function makeGl(canvas, vertexShader, fragmentShader) {
 		if (hook) hook(timeStamp);
 
 		gl.drawArrays(gl.TRIANGLES, 0, 6);
-
-		gl.clearColor(1, 1, 1, 1);
-gl.colorMask(false, false, false, true);
-gl.clear(gl.COLOR_BUFFER_BIT);
 
 		window.requestAnimationFrame(render);
 	}
