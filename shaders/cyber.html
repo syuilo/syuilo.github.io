@@ -1,0 +1,176 @@
+<!doctype html>
+
+<html>
+	<head>
+		<meta charset="utf-8">
+
+		<style>
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	background: #000;
+}
+
+input[type="range"] {
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+	margin: 0;
+}
+		</style>
+	</head>
+
+	<body>
+		<canvas id="canvas" style="display: block; width: 100%; height: 100%;"></canvas>
+
+		<script src="./common.js"></script>
+
+		<script>
+const canvas = document.getElementById('canvas');
+
+const VERTEX_SHADER = `#version 300 es
+in vec2 position;
+out vec2 in_uv;
+
+void main() {
+	in_uv = (position + 1.0) / 2.0;
+	gl_Position = vec4(position, 0.0, 1.0);
+}
+`;
+
+const FRAGMENT_SHADER = `#version 300 es
+precision mediump float;
+
+${GLSL_COMMON}
+
+in vec2 in_uv;
+uniform vec2 in_resolution;
+uniform int u_time;
+uniform sampler2D u_textures[16];
+uniform int u_texturesCount;
+uniform float u_divisions;
+uniform float u_seed;
+out vec4 out_color;
+
+void main() {
+	float aspect_ratio = min(in_resolution.x, in_resolution.y) / max(in_resolution.x, in_resolution.y);
+	vec2 cellSize = in_resolution.x > in_resolution.y ? vec2((1.0 / u_divisions) * aspect_ratio, 1.0 / u_divisions) : vec2(1.0 / u_divisions, (1.0 / u_divisions) * aspect_ratio);
+
+	float modX = mod(in_uv.x - 0.5, cellSize.x);
+	float modY = mod(in_uv.y - 0.5, cellSize.y);
+
+	float time = float(u_time);
+
+	float noiseScale = 1.0;
+	float noiseX = cellSize.x * floor((in_uv.x - 0.5) / cellSize.x);
+	noiseX += cellSize.x / 2.0;
+	noiseX += 0.5;
+	float noiseY = cellSize.y * floor((in_uv.y - 0.5) / cellSize.y);
+	noiseY += cellSize.y / 2.0;
+	noiseY += 0.5;
+
+	float texSelector = (snoise(vec3(noiseX * 3.0, noiseY * 3.0, time * 0.0001)) + 1.0) / 2.0;
+
+	//float scale = (snoise(vec3(noiseX * 0.5, noiseY * 0.5, time * 0.0001)) + 1.0) / 2.0;
+	float scale = 0.75;
+
+	float opacityNoiseA = snoise(vec3(noiseX, noiseY, time * 0.0001));
+	opacityNoiseA = (opacityNoiseA + 1.0) / 2.0;
+	float opacityNoiseB = snoise(vec3(noiseX * 8.0, noiseY * 8.0, time * 0.0001));
+	opacityNoiseB = (opacityNoiseB + 1.0) / 2.0;
+	float opacity = mix(opacityNoiseA, opacityNoiseB, 0.3) > 0.65 ? 1.0 : 0.0;
+
+	//out_color = vec4(vec3(texSelector), 1.0);
+	//return;
+
+	if (
+		(modX / cellSize.x) > (1.0 - scale) / 2.0 &&
+		(modX / cellSize.x) < 0.5 + (scale / 2.0) &&
+		(modY / cellSize.y) > (1.0 - scale) / 2.0 &&
+		(modY / cellSize.y) < 0.5 + (scale / 2.0)
+	) {
+		vec2 margin = vec2((1.0 - (0.5 + (scale / 2.0))) * cellSize.x, (1.0 - (0.5 + (scale / 2.0))) * cellSize.y);
+		vec2 transformedCoords = vec2(
+			(modX - margin.x) / (cellSize.x - (margin.x * 2.0)),
+			(modY - margin.y) / (cellSize.y - (margin.y * 2.0))
+		);
+		for (int i = 0; i < u_texturesCount; i++) {
+			if (texSelector <= (1.0 / float(u_texturesCount)) * float(i + 1)) {
+				out_color =
+					i == 1 ? texture(u_textures[1], transformedCoords) :
+					i == 2 ? texture(u_textures[2], transformedCoords) :
+					i == 3 ? texture(u_textures[3], transformedCoords) :
+					i == 4 ? texture(u_textures[4], transformedCoords) :
+					i == 5 ? texture(u_textures[5], transformedCoords) :
+					i == 6 ? texture(u_textures[6], transformedCoords) :
+					i == 7 ? texture(u_textures[7], transformedCoords) :
+					i == 8 ? texture(u_textures[8], transformedCoords) :
+					i == 9 ? texture(u_textures[9], transformedCoords) :
+					i == 10 ? texture(u_textures[10], transformedCoords) :
+					i == 11 ? texture(u_textures[11], transformedCoords) :
+					i == 12 ? texture(u_textures[12], transformedCoords) :
+					i == 13 ? texture(u_textures[13], transformedCoords) :
+					i == 14 ? texture(u_textures[14], transformedCoords) :
+					i == 15 ? texture(u_textures[15], transformedCoords) :
+					texture(u_textures[0], transformedCoords);
+				out_color.r /= 1.25;
+				out_color.b = 0.0;
+				out_color.a *= opacity;
+				break;
+			}
+		}
+	} else {
+		out_color = vec4(vec3(0.0), 0.0);
+	}
+}
+`;
+
+const { gl, program, render } = makeGl(canvas, VERTEX_SHADER, FRAGMENT_SHADER);
+
+const u_seed = gl.getUniformLocation(program, 'u_seed');
+const u_divisions = gl.getUniformLocation(program, 'u_divisions');
+gl.uniform1f(u_seed, 1000);
+gl.uniform1f(u_divisions, 48);
+
+const textureUrls = [
+	'./assets/blank.png',
+	'./assets/dot.png',
+	'./assets/dots.png',
+	'./assets/o1.png',
+	'./assets/o2.png',
+	'./assets/o3.png',
+	'./assets/o4.png',
+	'./assets/x1.png',
+	'./assets/x2.png',
+	'./assets/cross.png',
+	'./assets/slash1.png',
+	'./assets/slash2.png',
+	'./assets/corner.png',
+	'./assets/block.png',
+	'./assets/stripe.png',
+	'./assets/fill.png',
+];
+
+const u_texturesCount = gl.getUniformLocation(program, 'u_texturesCount');
+gl.uniform1i(u_texturesCount, textureUrls.length);
+
+async function main() {
+	const textures = await Promise.all(textureUrls.map((url) => createTextureFromUrl(gl, url)));
+
+	for (let i = 0; i < textures.length; i++) {
+		const tex = textures[i];
+		
+		gl.activeTexture(gl.TEXTURE0 + i);
+		gl.bindTexture(gl.TEXTURE_2D, tex);
+		const u_texture = gl.getUniformLocation(program, `u_textures[${i}]`);
+		gl.uniform1i(u_texture, i);
+	}
+
+	render();
+}
+
+main();
+		</script>
+	</body>
+</html>
