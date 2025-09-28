@@ -174,7 +174,7 @@ void main() {
 					texture(u_textures[0], transformedCoords);
 
 				if (colorNoise > 0.9) {
-					out_color.g = 0.3;
+					out_color.g *= 0.3;
 					out_color.b = 0.0;
 				} else if (colorNoise > 0.8) {
 					out_color.b = 0.0;
@@ -184,9 +184,9 @@ void main() {
 				} else if (colorNoise > 0.35) {
 
 				} else {
-					out_color.r = 0.5;
-					out_color.g = 0.5;
-					out_color.b = 0.5;
+					out_color.r *= 0.5;
+					out_color.g *= 0.5;
+					out_color.b *= 0.5;
 				}
 
 				out_color.a *= visibility;
