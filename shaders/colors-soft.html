@@ -83,9 +83,9 @@ void main() {
 	c = mix(c, vec3(1.0, 0.0, 0.0), noiseR);
 	c = mix(c, vec3(0.0, 1.0, 0.0), noiseG);
 	c = mix(c, vec3(0.0, 0.0, 1.0), noiseB);
-	c = normalize(c);
+	//c = normalize(c);
 	c = blendAdd(c, vec3(1.0));
-	//c = blendScreen(c, vec3(whiteNoise * 0.2));
+	c = blendScreen(c, vec3(whiteNoise * 0.2));
 
 	c = min(max(c, vec3(0.0)), vec3(1.0));
 	out_color = vec4(c.r, c.g, c.b, 1.0);

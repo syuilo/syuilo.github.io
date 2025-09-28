@@ -109,6 +109,62 @@ const float PI = 3.141592653589793;
 const float TWO_PI = 6.283185307179586;
 const float HALF_PI = 1.5707963267948966;
 
+float blendNormal(float base, float blend) {
+	return blend;
+}
+vec3 blendNormal(vec3 base, vec3 blend) {
+	return blend;
+}
+
+float blendAdd(float base, float blend) {
+	return min(base + blend, 1.0);
+}
+vec3 blendAdd(vec3 base, vec3 blend) {
+	return min(base + blend, vec3(1.0));
+}
+
+float blendSubtract(float base, float blend) {
+	return max(base + blend - 1.0, 0.0);
+}
+vec3 blendSubtract(vec3 base, vec3 blend) {
+	return max(base + blend - vec3(1.0), vec3(0.0));
+}
+
+float blendMultiply(float base, float blend) {
+	return base * blend;
+}
+vec3 blendMultiply(vec3 base, vec3 blend) {
+	return base * blend;
+}
+
+float blendDarken(float base, float blend) {
+	return min(blend, base);
+}
+vec3 blendDarken(vec3 base, vec3 blend) {
+	return vec3(blendDarken(base.r, blend.r), blendDarken(base.g, blend.g), blendDarken(base.b, blend.b));
+}
+
+float blendLighten(float base, float blend) {
+	return max(blend, base);
+}
+vec3 blendLighten(vec3 base, vec3 blend) {
+	return vec3(blendLighten(base.r, blend.r), blendLighten(base.g, blend.g), blendLighten(base.b, blend.b));
+}
+
+float blendScreen(float base, float blend) {
+	return 1.0 - ((1.0 - base) * (1.0 - blend));
+}
+vec3 blendScreen(vec3 base, vec3 blend) {
+	return vec3(blendScreen(base.r, blend.r), blendScreen(base.g, blend.g), blendScreen(base.b, blend.b));
+}
+
+float blendOverlay(float base, float blend) {
+	return base < 0.5 ? (2.0 * base * blend) : (1.0 - 2.0 * (1.0 - base) * (1.0 - blend));
+}
+vec3 blendOverlay(vec3 base, vec3 blend) {
+	return vec3(blendOverlay(base.r, blend.r), blendOverlay(base.g, blend.g), blendOverlay(base.b, blend.b));
+}
+
 // Description : Array and textureless GLSL 2D/3D/4D simplex
 //               noise functions.
 //      Author : Ian McEwan, Ashima Arts.
