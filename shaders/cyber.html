@@ -83,8 +83,6 @@ float getRipple(vec2 uv) {
 }
 
 void main() {
-out_color = vec4(vec3(0.0), 1.0);
-
 	float x_ratio = max(in_resolution.x / in_resolution.y, 1.0);
 	float y_ratio = max(in_resolution.y / in_resolution.x, 1.0);
 
@@ -125,7 +123,7 @@ out_color = vec4(vec3(0.0), 1.0);
 	float visibilityNoiseB = snoise0to1(vec3(noiseX * 8.0, noiseY * 8.0, time * 0.0000125));
 	float threshold = 0.6;
 	if (ripple > 0.5) threshold -= 0.1;
-	float visibility = mix(visibilityNoiseA, visibilityNoiseB, 0.5) > threshold ? 1.0 : 0.0;
+	float visibility = mix(visibilityNoiseA, visibilityNoiseB, 0.5) > threshold ? 0.5 : 0.0;
 
 	//if (ripple > 0.5) {
 	//	visibility = 0.2;
