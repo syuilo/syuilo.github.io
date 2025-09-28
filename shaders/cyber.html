@@ -131,7 +131,7 @@ const { gl, program, render } = makeGl(canvas, VERTEX_SHADER, FRAGMENT_SHADER);
 const u_seed = gl.getUniformLocation(program, 'u_seed');
 const u_divisions = gl.getUniformLocation(program, 'u_divisions');
 gl.uniform1f(u_seed, 1000);
-gl.uniform1f(u_divisions, 48);
+gl.uniform1f(u_divisions, 32);
 
 const textureUrls = [
 	'./assets/blank.png',
