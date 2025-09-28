@@ -126,6 +126,9 @@ function makeGl(canvas, vertexShader, fragmentShader) {
 	// ただそのままUNIX時間を入れると、秒数が大きすぎて浮動小数点数の関係で精度が落ちるため、1日間隔でループ
 	const initialTime = Date.now() % (1000 * 60 * 60 * 24);
 
+	gl.clearColor(0, 0, 0, 0);
+gl.clear(gl.COLOR_BUFFER_BIT);
+
 	let hook;
 
 	function render(frame) {
