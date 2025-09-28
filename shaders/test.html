@@ -105,7 +105,7 @@ void main() {
 
 	float ripple = getRipple(vec2(noiseX, noiseY));
 
-	float texSelector = snoise0to1(vec3(noiseX * 3.0, noiseY * 3.0, time * 0.00005)) / 2.0;
+	float texSelector = snoise0to1(vec3(noiseX * 3.0, noiseY * 3.0, time * 0.00005));
 	if (ripple > 0.5) {
 		texSelector += 0.25;
 		//texSelector *= 1.5;
@@ -154,7 +154,7 @@ void main() {
 			(modY - margin.y) / (cellSize.y - (margin.y * 2.0))
 		);
 		for (int i = 0; i < u_texturesCount; i++) {
-
+			if (texSelector <= (1.0 / float(u_texturesCount)) * float(i + 1)) {
 				out_color =
 					i == 1 ? texture(u_textures[1], transformedCoords) :
 					i == 2 ? texture(u_textures[2], transformedCoords) :
@@ -171,7 +171,7 @@ void main() {
 					i == 13 ? texture(u_textures[13], transformedCoords) :
 					i == 14 ? texture(u_textures[14], transformedCoords) :
 					i == 15 ? texture(u_textures[15], transformedCoords) :
-					texture(u_textures[1], transformedCoords);
+					texture(u_textures[0], transformedCoords);
 
 				if (colorNoise > 0.9) {
 					out_color.g = 0.3;
@@ -183,7 +183,7 @@ void main() {
 					out_color.b = 0.0;
 				} else if (colorNoise > 0.35) {
 					out_color.r = 1.0;
-					out_color.g = 1.0;
+					out_color.g = 0.0;
 					out_color.b = 1.0;
 				} else {
 					out_color.r = 1.0;
@@ -192,14 +192,15 @@ void main() {
 					out_color.a *= 0.25;
 				}
 
-out_color = vec4(out_color.r, out_color.g, out_color.b, out_color.a * visibility);
+				out_color.a *= visibility;
 
-				if (visibility < 0.3) {
+				if (visibility == 0.0) {
 					out_color = vec4(0.0, 0.0, 0.0, 1.0);
 				}
 
 				//out_color += vec4(vec3(1.0, 0.5, 0.0), getRipple(uv));
 				break;
+			}
 		}
 	} else {
 		out_color = vec4(vec3(0.0), 0.0);
@@ -234,14 +235,25 @@ for (let i = 0; i < 16; i++) {
 }
 
 const textureUrls = [
+	'./assets/dot.png',
+	'./assets/dots.png',
 	'./assets/o1.png',
 	'./assets/o2.png',
 	'./assets/o3.png',
+	'./assets/o4.png',
+	'./assets/x1.png',
+	'./assets/x2.png',
+	'./assets/cross.png',
+	'./assets/slash1.png',
+	'./assets/slash2.png',
+	'./assets/corner.png',
+	'./assets/block.png',
+	'./assets/square-slash.png',
 	'./assets/stripe.png',
 ];
 
 const u_texturesCount = gl.getUniformLocation(program, 'u_texturesCount');
-gl.uniform1i(u_texturesCount, textureUrls.length - 1);
+gl.uniform1i(u_texturesCount, textureUrls.length);
 
 async function main() {
 	const textures = await Promise.all(textureUrls.map((url) => createTextureFromUrl(gl, url)));
