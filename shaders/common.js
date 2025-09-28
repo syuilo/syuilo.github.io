@@ -83,10 +83,12 @@ async function createTextureArrayFromUrl(gl, url) {
 }
 
 function makeGl(canvas, vertexShader, fragmentShader) {
+	const pixelRatio = window.devicePixelRatio;
+
 	let width = canvas.offsetWidth;
 	let height = canvas.offsetHeight;
-	canvas.width = width;
-	canvas.height = height;
+	canvas.width = width * pixelRatio;
+	canvas.height = height * pixelRatio;
 
 	const gl = canvas.getContext('webgl2', { preserveDrawingBuffer: false, alpha: true, premultipliedAlpha: false, antialias: true });
 
@@ -103,7 +105,7 @@ function makeGl(canvas, vertexShader, fragmentShader) {
 	gl.enableVertexAttribArray(positionLocation);
 
 	const in_resolution = gl.getUniformLocation(shaderProgram, 'in_resolution');
-	gl.uniform2fv(in_resolution, [width, height]);
+	gl.uniform2fv(in_resolution, [width * pixelRatio, height * pixelRatio]);
 
 	const u_time = gl.getUniformLocation(shaderProgram, 'u_time');
 
@@ -117,17 +119,17 @@ function makeGl(canvas, vertexShader, fragmentShader) {
 		let sizeChanged = false;
 		if (Math.abs(height - canvas.offsetHeight) > 2) {
 			height = canvas.offsetHeight;
-			canvas.height = height;
+			canvas.height = height * pixelRatio;
 			sizeChanged = true;
 		}
 		if (Math.abs(width - canvas.offsetWidth) > 2) {
 			width = canvas.offsetWidth;
-			canvas.width = width;
+			canvas.width = width * pixelRatio;
 			sizeChanged = true;
 		}
 		if (sizeChanged && gl) {
-			gl.uniform2fv(in_resolution, [width, height]);
-			gl.viewport(0, 0, width, height);
+			gl.uniform2fv(in_resolution, [width * pixelRatio, height * pixelRatio]);
+			gl.viewport(0, 0, width * pixelRatio, height * pixelRatio);
 		}
 
 		// debug
