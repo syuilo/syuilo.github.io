@@ -241,6 +241,7 @@ vec4 taylorInvSqrt(vec4 r) {
 	return 1.79284291400159 - 0.85373472095314 * r;
 }
 
+// -1.0 ~ +1.0
 float snoise(vec3 v) {
 	const vec2 C = vec2(1.0/6.0, 1.0/3.0);
 	const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
@@ -299,5 +300,10 @@ float snoise(vec3 v) {
 	vec4 m = max(0.5 - vec4(dot(x0, x0), dot(x1, x1), dot(x2, x2), dot(x3, x3)), 0.0);
 	m = m * m;
 	return 105.0 * dot(m * m, vec4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)));
+}
+
+// +0.0 ~ +1.0
+float snoise0to1(vec3 v) {
+	return (snoise(v) + 1.0) / 2.0;
 }
 `;

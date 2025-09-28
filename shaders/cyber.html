@@ -104,24 +104,22 @@ void main() {
 
 	float ripple = getRipple(vec2(noiseX, noiseY));
 
-	float texSelector = (snoise(vec3(noiseX * 3.0, noiseY * 3.0, time * 0.00005)) + 1.0) / 2.0;
+	float texSelector = snoise0to1(vec3(noiseX * 3.0, noiseY * 3.0, time * 0.00005));
 	if (ripple > 0.5) {
 		texSelector += 0.25;
 		//texSelector *= 1.5;
 		texSelector = min(texSelector, 1.0);
 	}
 
-	float scaleNoise = (snoise(vec3(noiseX * 0.5, noiseY * 0.5, time * 0.000025)) + 1.0) / 2.0;
+	float scaleNoise = snoise0to1(vec3(noiseX * 0.5, noiseY * 0.5, time * 0.000025));
 	float scale = scaleNoise > 0.25 ? 0.75 : 0.4;
 	//float scale = 0.75;
 	if (ripple > 0.5) {
 		scale = 1.0;
 	}
 
-	float opacityNoiseA = snoise(vec3(noiseX, noiseY, time * 0.000025));
-	opacityNoiseA = (opacityNoiseA + 1.0) / 2.0;
-	float opacityNoiseB = snoise(vec3(noiseX * 8.0, noiseY * 8.0, time * 0.000025));
-	opacityNoiseB = (opacityNoiseB + 1.0) / 2.0;
+	float opacityNoiseA = snoise0to1(vec3(noiseX, noiseY, time * 0.000025));
+	float opacityNoiseB = snoise0to1(vec3(noiseX * 8.0, noiseY * 8.0, time * 0.000025));
 	float threshold = ripple > 0.5 ? 0.6 : 0.65;
 	float opacity = mix(opacityNoiseA, opacityNoiseB, 0.5) > threshold ? 1.0 : 0.0;
 
@@ -129,7 +127,7 @@ void main() {
 	//	opacity = 0.2;
 	//}
 
-	float colorNoise = (snoise(vec3(noiseX * 8.0, noiseY * 8.0, time * 0.00005)) + 1.0) / 2.0;
+	float colorNoise = snoise0to1(vec3(noiseX * 8.0, noiseY * 8.0, time * 0.00005));
 
 	//out_color = vec4(vec3(texSelector), 1.0);
 	//return;
@@ -170,7 +168,7 @@ void main() {
 					out_color.b = 0.0;
 				} else if (colorNoise > 0.8) {
 					out_color.b = 0.0;
-				} else if (colorNoise > 0.5) {
+				} else if (colorNoise > 0.6) {
 					out_color.r /= 1.25;
 					out_color.b = 0.0;
 				} else {
