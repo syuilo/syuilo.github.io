@@ -81,8 +81,9 @@ float getRipple(vec2 uv) {
 
 	return v;
 }
+
 void main() {
-out_color = vec4(vec3(0.0), 0.0);
+out_color = vec4(vec3(0.0), 1.0);
 
 	float x_ratio = max(in_resolution.x / in_resolution.y, 1.0);
 	float y_ratio = max(in_resolution.y / in_resolution.x, 1.0);
