@@ -9,7 +9,7 @@ html, body {
 	width: 100%;
 	height: 100%;
 	margin: 0;
-	background: #000;
+	background: #0a0a0a;
 }
 
 input[type="range"] {
@@ -116,7 +116,7 @@ void main() {
 					texture(u_textures[0], transformedCoords);
 				out_color.r /= 1.25;
 				out_color.b = 0.0;
-				out_color.a = opacity;
+				out_color.a *= opacity;
 				break;
 			}
 		}
