@@ -242,7 +242,7 @@ const textureUrls = [
 ];
 
 const u_texturesCount = gl.getUniformLocation(program, 'u_texturesCount');
-gl.uniform1i(u_texturesCount, textureUrls.length);
+gl.uniform1i(u_texturesCount, textureUrls.length - 1);
 
 async function main() {
 	const textures = await Promise.all(textureUrls.map((url) => createTextureFromUrl(gl, url)));
