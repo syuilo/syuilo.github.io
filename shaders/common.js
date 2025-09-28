@@ -1,3 +1,16 @@
+function getUrlParams() {
+	const params = {};
+	const queryString = window.location.search;
+	if (queryString) {
+		const pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+		for (let i = 0; i < pairs.length; i++) {
+			const pair = pairs[i].split('=');
+			params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+		}
+	}
+	return params;
+}
+
 function loadShader(gl, type, source) {
 	const shader = gl.createShader(type);
 	if (shader == null) {
