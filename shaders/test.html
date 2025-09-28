@@ -154,7 +154,7 @@ void main() {
 			(modY - margin.y) / (cellSize.y - (margin.y * 2.0))
 		);
 		for (int i = 0; i < u_texturesCount; i++) {
-			if (texSelector <= (1.0 / float(u_texturesCount)) * float(i + 1)) {
+
 				out_color =
 					i == 1 ? texture(u_textures[1], transformedCoords) :
 					i == 2 ? texture(u_textures[2], transformedCoords) :
@@ -200,7 +200,6 @@ out_color = vec4(out_color.r, out_color.g, out_color.b, visibility);
 
 				//out_color += vec4(vec3(1.0, 0.5, 0.0), getRipple(uv));
 				break;
-			}
 		}
 	} else {
 		out_color = vec4(vec3(0.0), 0.0);
