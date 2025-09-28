@@ -133,6 +133,14 @@ void main() {
 	//out_color = vec4(vec3(texSelector), 1.0);
 	//return;
 
+	// dots
+	if (opacity == 0.0 && opacityNoiseA > 0.5) {
+		if (distance(vec2(modX / cellSize.x, modY / cellSize.y), vec2(0.5, 0.5)) < 0.05) {
+			out_color = vec4(1.0, 1.0, 1.0, 0.25);
+			return;
+		}
+	}
+
 	if (
 		(modX / cellSize.x) > (1.0 - scale) / 2.0 &&
 		(modX / cellSize.x) < 0.5 + (scale / 2.0) &&
