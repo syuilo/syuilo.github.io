@@ -63,6 +63,7 @@ void main() {
 	float time = float(u_time);
 
 	float noiseScale = 1.0;
+	// TODO: アスペクト比考慮
 	float noiseX = cellSize.x * floor((in_uv.x - 0.5) / cellSize.x);
 	noiseX += cellSize.x / 2.0;
 	noiseX += 0.5;
