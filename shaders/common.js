@@ -2,13 +2,23 @@ function getUrlParams() {
 	const params = {};
 	const queryString = window.location.search;
 	if (queryString) {
-		const pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+		const pairs = (queryString[0] === '?' ? queryString.substring(1) : queryString).split('&');
 		for (let i = 0; i < pairs.length; i++) {
 			const pair = pairs[i].split('=');
 			params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
 		}
 	}
 	return params;
+}
+
+function getUrlParam(name, type) {
+	const params = getUrlParams();
+	if (params[name] == null) return null;
+	if (type === 'number') return parseFloat(params[name]);
+	if (type === 'int') return parseInt(params[name]);
+	if (type === 'float') return parseFloat(params[name]);
+	if (type === 'bool') return params[name] === 'true';
+	if (type === 'string') return params[name];
 }
 
 function loadShader(gl, type, source) {
@@ -96,14 +106,22 @@ async function createTextureArrayFromUrl(gl, url) {
 }
 
 function makeGl(canvas, vertexShader, fragmentShader) {
-	const pixelRatio = window.devicePixelRatio;
+	const pixelRatio = getUrlParam('pixelRatio', 'number') ?? window.devicePixelRatio;
 
 	let width = canvas.offsetWidth;
 	let height = canvas.offsetHeight;
 	canvas.width = width * pixelRatio;
 	canvas.height = height * pixelRatio;
 
-	const gl = canvas.getContext('webgl2', { preserveDrawingBuffer: false, alpha: true, premultipliedAlpha: false, antialias: true });
+	const gl = canvas.getContext('webgl2', {
+		preserveDrawingBuffer: false,
+		alpha: true,
+		premultipliedAlpha: getUrlParam('premultipliedAlpha', 'bool') ?? false,
+		antialias: true,
+	});
+
+	gl.clearColor(0, 0, 0, 0);
+	gl.clear(gl.COLOR_BUFFER_BIT);
 
 	const VERTICES = new Float32Array([-1, -1, -1, 1, 1, 1, -1, -1, 1, 1, 1, -1]);
 	const vertexBuffer = gl.createBuffer();
@@ -125,9 +143,6 @@ function makeGl(canvas, vertexShader, fragmentShader) {
 	// 誰が見ても同じレンダリング結果になるように、開いた時間を基準にする
 	// ただそのままUNIX時間を入れると、秒数が大きすぎて浮動小数点数の関係で精度が落ちるため、1日間隔でループ
 	const initialTime = Date.now() % (1000 * 60 * 60 * 24);
-
-	gl.clearColor(0, 0, 0, 0);
-gl.clear(gl.COLOR_BUFFER_BIT);
 
 	let hook;
 

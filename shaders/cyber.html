@@ -22,7 +22,7 @@ input[type="range"] {
 	</head>
 
 	<body>
-		<canvas id="canvas" style="display: block; width: 100%; height: 100%; background: #0a0a0a;"></canvas>
+		<canvas id="canvas" style="display: block; width: 100%; height: 100%;"></canvas>
 
 		<script src="./common.js"></script>
 
@@ -174,7 +174,7 @@ void main() {
 					texture(u_textures[0], transformedCoords);
 
 				if (colorNoise > 0.9) {
-					out_color.g = 0.3;
+					out_color.g *= 0.3;
 					out_color.b = 0.0;
 				} else if (colorNoise > 0.8) {
 					out_color.b = 0.0;
@@ -182,20 +182,28 @@ void main() {
 					out_color.r /= 1.25;
 					out_color.b = 0.0;
 				} else if (colorNoise > 0.35) {
-					out_color.r = 1.0;
-					out_color.g = 1.0;
-					out_color.b = 1.0;
+					// iOSだとおかしい
+					//out_color.r = 1.0;
+					//out_color.g = 1.0;
+					//out_color.b = 1.0;
 				} else {
-					out_color.r = 1.0;
-					out_color.g = 1.0;
-					out_color.b = 1.0;
-					out_color.a *= 0.25;
+					// iOSだとおかしい
+					//out_color.r = 1.0;
+					//out_color.g = 1.0;
+					//out_color.b = 1.0;
+					//out_color.a *= 0.25;
+
+					out_color.r *= 0.5;
+					out_color.g *= 0.5;
+					out_color.b *= 0.5;
 				}
 
 				out_color.a *= visibility;
 
 				if (visibility == 0.0) {
-					out_color = vec4(1.0, 1.0, 1.0, ripple * 0.0125);
+					// iOSだとおかしい
+					//out_color = vec4(1.0, 1.0, 1.0, ripple * 0.0125);
+					out_color = vec4(0.0, 0.0, 0.0, 1.0);
 				}
 
 				//out_color += vec4(vec3(1.0, 0.5, 0.0), getRipple(uv));
@@ -203,7 +211,9 @@ void main() {
 			}
 		}
 	} else {
-		out_color = vec4(vec3(0.0), 0.0);
+	 	// iOSだとおかしい
+		//out_color = vec4(vec3(0.0), 0.0);
+		out_color = vec4(0.0, 0.0, 0.0, 1.0);
 	}
 }
 `;
