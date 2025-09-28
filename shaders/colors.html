@@ -1,0 +1,102 @@
+<!doctype html>
+
+<html>
+	<head>
+		<meta charset="utf-8">
+
+		<style>
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	background: #ddd;
+}
+
+input[type="range"] {
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+	margin: 0;
+}
+		</style>
+	</head>
+
+	<body>
+		<canvas id="canvas" style="display: block; width: 100%; height: 100%;"></canvas>
+
+		<script src="./common.js"></script>
+
+		<script>
+const canvas = document.getElementById('canvas');
+
+const VERTEX_SHADER = `#version 300 es
+in vec2 position;
+out vec2 in_uv;
+
+void main() {
+	in_uv = (position + 1.0) / 2.0;
+	gl_Position = vec4(position, 0.0, 1.0);
+}
+`;
+
+const FRAGMENT_SHADER = `#version 300 es
+precision mediump float;
+
+${GLSL_COMMON}
+
+in vec2 in_uv;
+uniform vec2 in_resolution;
+uniform int u_time;
+uniform float u_scale;
+uniform float u_seed;
+out vec4 out_color;
+
+void main() {
+	float x_ratio = min(in_resolution.x / in_resolution.y, 1.0);
+	float y_ratio = min(in_resolution.y / in_resolution.x, 1.0);
+
+	vec2 centeredUv = (in_uv - vec2(0.5, 0.5)) * vec2(x_ratio, y_ratio);
+	vec2 uv = centeredUv;
+
+	float time = float(u_time) * 0.0001;
+
+	float noiseScale = 32.0;
+
+	float noiseRScale = noiseScale;
+	float noiseRX = (uv.x + u_seed + 1.0) * (u_scale / noiseRScale);
+	float noiseRY = (uv.y + u_seed + 1.0) * (u_scale / noiseRScale);
+  float noiseR = snoise(vec3(noiseRX, noiseRY, time));
+
+	float noiseGScale = noiseScale;
+	float noiseGX = (uv.x + u_seed + 2.0) * (u_scale / noiseGScale);
+	float noiseGY = (uv.y + u_seed + 2.0) * (u_scale / noiseGScale);
+	float noiseG = snoise(vec3(noiseGX, noiseGY, time));
+
+	float noiseBScale = noiseScale;
+	float noiseBX = (uv.x + u_seed + 3.0) * (u_scale / noiseBScale);
+	float noiseBY = (uv.y + u_seed + 3.0) * (u_scale / noiseBScale);
+	float noiseB = snoise(vec3(noiseBX, noiseBY, time));
+
+	vec3 c = vec3(0.0);
+	c = mix(c, vec3(1.0, 0.0, 0.0), noiseR);
+	c = mix(c, vec3(0.0, 1.0, 0.0), noiseG);
+	c = mix(c, vec3(0.0, 0.0, 1.0), noiseB);
+	c = normalize(c);
+	c = min(c + vec3(1.0), vec3(1.0));
+
+	c = min(max(c, vec3(0.0)), vec3(1.0));
+	out_color = vec4(c.r, c.g, c.b, 1.0);
+}
+`;
+
+const { gl, program, render } = makeGl(canvas, VERTEX_SHADER, FRAGMENT_SHADER);
+
+const u_seed = gl.getUniformLocation(program, 'u_seed');
+const u_scale = gl.getUniformLocation(program, 'u_scale');
+gl.uniform1f(u_seed, 1000);
+gl.uniform1f(u_scale, 48);
+
+render();
+		</script>
+	</body>
+</html>
