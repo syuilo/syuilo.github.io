@@ -103,7 +103,7 @@ function makeGl(canvas, vertexShader, fragmentShader) {
 	canvas.width = width * pixelRatio;
 	canvas.height = height * pixelRatio;
 
-	const gl = canvas.getContext('webgl2', { preserveDrawingBuffer: false, alpha: true, premultipliedAlpha: true, antialias: true });
+	const gl = canvas.getContext('webgl2', { preserveDrawingBuffer: false, alpha: true, premultipliedAlpha: false, antialias: true });
 
 	const VERTICES = new Float32Array([-1, -1, -1, 1, 1, 1, -1, -1, 1, 1, 1, -1]);
 	const vertexBuffer = gl.createBuffer();
