@@ -80,7 +80,7 @@ vec3 getRipple(vec2 uv) {
 		}
 	}
 
-	return min(max(v, 0.0), 1.0);
+	return v;
 }
 
 void main() {
@@ -103,15 +103,19 @@ void main() {
 	) + vec2(0.5 + size, 0.5 + size);
 
 	vec3 v = getRipple(pixelated_uv);
+	vec3 c = min(max(v, 0.0), 1.0);
 
-	float threshold = ((u_radius / 2.0) / u_scale);
+	float strength = v.r + v.g + v.b;
+	strength /= 1.5;
+
+	float threshold = (u_radius * max(1.0, strength) / u_scale);
 	if (length(vec2(modX - size_half, modY - size_half)) < threshold) {
-		out_color = vec4(v.r, v.g, v.b, 1.0);
+		out_color = vec4(c.r, c.g, c.b, 1.0);
 		return;
 	}
 
 	// debug
-	//out_color = vec4(v.r, v.g, v.b, 0.5);
+	//out_color = vec4(c.r, c.g, c.b, 0.5);
 	out_color = vec4(0.0, 0.0, 0.0, 0.0);
 }
 `;
@@ -123,7 +127,7 @@ const u_scale = gl.getUniformLocation(program, 'u_scale');
 const u_radius = gl.getUniformLocation(program, 'u_radius');
 gl.uniform1f(u_seed, 1000);
 gl.uniform1f(u_scale, 48);
-gl.uniform1f(u_radius, 0.15);
+gl.uniform1f(u_radius, 0.07);
 
 let ripples = [];
 const LIFE_TIME = 1000 * 4;
