@@ -118,8 +118,8 @@ void main() {
 		scale = 1.0;
 	}
 
-	float visibilityNoiseA = snoise0to1(vec3(noiseX, noiseY, time * 0.000025));
-	float visibilityNoiseB = snoise0to1(vec3(noiseX * 8.0, noiseY * 8.0, time * 0.000025));
+	float visibilityNoiseA = snoise0to1(vec3(noiseX, noiseY, time * 0.0000125));
+	float visibilityNoiseB = snoise0to1(vec3(noiseX * 8.0, noiseY * 8.0, time * 0.0000125));
 	float threshold = 0.6;
 	if (ripple > 0.5) threshold -= 0.1;
 	float visibility = mix(visibilityNoiseA, visibilityNoiseB, 0.5) > threshold ? 1.0 : 0.0;
