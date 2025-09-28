@@ -1,0 +1,212 @@
+<!doctype html>
+
+<html>
+	<head>
+		<meta charset="utf-8">
+
+		<style>
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	background: #0a0a0a;
+}
+
+input[type="range"] {
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+	margin: 0;
+}
+		</style>
+	</head>
+
+	<body>
+		<canvas id="canvas" style="display: block; width: 100%; height: 100%;"></canvas>
+
+		<script src="./common.js"></script>
+
+		<script>
+const canvas = document.getElementById('canvas');
+
+const VERTEX_SHADER = `#version 300 es
+in vec2 position;
+out vec2 in_uv;
+
+void main() {
+	in_uv = (position + 1.0) / 2.0;
+	gl_Position = vec4(position, 0.0, 1.0);
+}
+`;
+
+const FRAGMENT_SHADER = `#version 300 es
+precision mediump float;
+
+${GLSL_COMMON}
+
+in vec2 in_uv;
+uniform vec2 in_resolution;
+uniform int u_time;
+uniform sampler2D u_textures[16];
+uniform int u_texturesCount;
+uniform float u_divisions;
+uniform float u_seed;
+uniform vec2 u_ripplePositions[16];
+uniform float u_rippleRadiuses[16];
+out vec4 out_color;
+
+float getRipple(vec2 uv) {
+	float v = 0.0;
+	float thickness = 0.075;
+
+	for (int i = 0; i < 16; i++) {
+		float ru = u_rippleRadiuses[i];
+		vec2 rp = u_ripplePositions[i];
+
+		if (ru <= 0.0) continue;
+
+		float d = distance(uv, rp);
+
+		// フチ
+		if (d < ru + thickness && d > ru - thickness) {
+			float gradate =  abs(d - ru + thickness) / thickness;
+			v += ((1.0 - ru) * gradate);
+		}
+
+		//// 内側
+		//if (d < ru + thickness) {
+		//	v += (0.3 * (1.0 - ru));
+		//}
+	}
+
+	return v;
+}
+
+void main() {
+	if (in_uv.y > 0.6) {
+		if (in_uv.x > 0.5) {
+			out_color = vec4(0.0, 0.0, 0.0, 0.0);
+		} else {
+			out_color = vec4(1.0, 1.0, 1.0, 0.0);
+		}
+	} else if (in_uv.y > 0.3) {
+		if (in_uv.x > 0.5) {
+			out_color = vec4(0.0, 0.0, 0.0, 0.5);
+		} else {
+			out_color = vec4(1.0, 1.0, 1.0, 0.5);
+		}
+	} else {
+		if (in_uv.x > 0.5) {
+			out_color = vec4(0.0, 0.0, 0.0, 1.0);
+		} else {
+			out_color = vec4(1.0, 1.0, 1.0, 1.0);
+		}
+	}
+}
+`;
+
+const params = getUrlParams();
+
+const { gl, program, render } = makeGl(canvas, VERTEX_SHADER, FRAGMENT_SHADER);
+
+const u_seed = gl.getUniformLocation(program, 'u_seed');
+const u_divisions = gl.getUniformLocation(program, 'u_divisions');
+gl.uniform1f(u_seed, 1000);
+gl.uniform1f(u_divisions, params.divisions ?? 40);
+
+let ripples = [];
+const LIFE_TIME = 1000 * 2;
+
+function drop(timeStamp, x, y) {
+	if (ripples.length >= 16) return;
+	const _x = x ?? (Math.random() * 1) - 0.5;
+	const _y = y ?? (Math.random() * 1) - 0.5;
+	ripples.push({ position: [_x, _y], startTime: timeStamp, });
+}
+
+const uniformLocations_rp = [];
+const uniformLocations_rr = [];
+for (let i = 0; i < 16; i++) {
+	uniformLocations_rp.push(gl.getUniformLocation(program, `u_ripplePositions[${i.toString()}]`));
+	uniformLocations_rr.push(gl.getUniformLocation(program, `u_rippleRadiuses[${i.toString()}]`));
+}
+
+const textureUrls = [
+	'./assets/dot.png',
+	'./assets/dots.png',
+	'./assets/o1.png',
+	'./assets/o2.png',
+	'./assets/o3.png',
+	'./assets/o4.png',
+	'./assets/x1.png',
+	'./assets/x2.png',
+	'./assets/cross.png',
+	'./assets/slash1.png',
+	'./assets/slash2.png',
+	'./assets/corner.png',
+	'./assets/block.png',
+	'./assets/square-slash.png',
+	'./assets/stripe.png',
+	'./assets/fill.png',
+];
+
+const u_texturesCount = gl.getUniformLocation(program, 'u_texturesCount');
+gl.uniform1i(u_texturesCount, textureUrls.length);
+
+async function main() {
+	const textures = await Promise.all(textureUrls.map((url) => createTextureFromUrl(gl, url)));
+
+	for (let i = 0; i < textures.length; i++) {
+		const tex = textures[i];
+		
+		gl.activeTexture(gl.TEXTURE0 + i);
+		gl.bindTexture(gl.TEXTURE_2D, tex);
+		const u_texture = gl.getUniformLocation(program, `u_textures[${i}]`);
+		gl.uniform1i(u_texture, i);
+	}
+
+	let t = 0;
+
+	render((timeStamp) => {
+		t = timeStamp;
+
+		for (let i = 0; i < 16; i++) {
+			const p = uniformLocations_rp[i];
+			const r = uniformLocations_rr[i];
+			const ripple = ripples[i];
+			if (ripple == null) {
+				gl.uniform2f(p, 0, 0);
+				gl.uniform1f(r, 0.0);
+				continue;
+			}
+
+			const delta = timeStamp - ripple.startTime;
+
+			gl.uniform2f(p, ripple.position[0], ripple.position[1]);
+			gl.uniform1f(r, delta / LIFE_TIME);
+		}
+
+		ripples = ripples.filter(r => (timeStamp - r.startTime) < LIFE_TIME);
+	});
+
+	let lastClick = 0;
+
+	canvas.addEventListener('click', (ev) => {
+		if (t - lastClick < 400) return;
+		lastClick = t;
+		const rect = canvas.getBoundingClientRect();
+		const w = rect.width;
+		const h = rect.height;
+		const aspectX = w / Math.min(w, h);
+		const aspectY = h / Math.min(w, h);
+		const x = ((ev.clientX - rect.left) / w - 0.5) * aspectX;
+		const y = -((ev.clientY - rect.top) / h - 0.5) * aspectY;
+		console.log(x, y);
+		drop(t, x, y);
+	});
+}
+
+main();
+		</script>
+	</body>
+</html>
