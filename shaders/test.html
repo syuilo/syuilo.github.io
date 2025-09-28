@@ -1,0 +1,315 @@
+<!doctype html>
+
+<html>
+	<head>
+		<meta charset="utf-8">
+
+		<style>
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	background: #0a0a0a;
+}
+
+input[type="range"] {
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+	margin: 0;
+}
+		</style>
+	</head>
+
+	<body>
+		<canvas id="canvas" style="display: block; width: 100%; height: 100%; background: #0a0a0a;"></canvas>
+
+		<script src="./common.js"></script>
+
+		<script>
+const canvas = document.getElementById('canvas');
+
+const VERTEX_SHADER = `#version 300 es
+in vec2 position;
+out vec2 in_uv;
+
+void main() {
+	in_uv = (position + 1.0) / 2.0;
+	gl_Position = vec4(position, 0.0, 1.0);
+}
+`;
+
+const FRAGMENT_SHADER = `#version 300 es
+precision mediump float;
+
+${GLSL_COMMON}
+
+in vec2 in_uv;
+uniform vec2 in_resolution;
+uniform int u_time;
+uniform sampler2D u_textures[16];
+uniform int u_texturesCount;
+uniform float u_divisions;
+uniform float u_seed;
+uniform vec2 u_ripplePositions[16];
+uniform float u_rippleRadiuses[16];
+out vec4 out_color;
+
+float getRipple(vec2 uv) {
+	float v = 0.0;
+	float thickness = 0.075;
+
+	for (int i = 0; i < 16; i++) {
+		float ru = u_rippleRadiuses[i];
+		vec2 rp = u_ripplePositions[i];
+
+		if (ru <= 0.0) continue;
+
+		float d = distance(uv, rp);
+
+		// フチ
+		if (d < ru + thickness && d > ru - thickness) {
+			float gradate =  abs(d - ru + thickness) / thickness;
+			v += ((1.0 - ru) * gradate);
+		}
+
+		//// 内側
+		//if (d < ru + thickness) {
+		//	v += (0.3 * (1.0 - ru));
+		//}
+	}
+
+	return v;
+}
+
+void main() {
+	float x_ratio = max(in_resolution.x / in_resolution.y, 1.0);
+	float y_ratio = max(in_resolution.y / in_resolution.x, 1.0);
+
+	vec2 centeredUv = (in_uv - vec2(0.5, 0.5)) * vec2(x_ratio, y_ratio);
+	vec2 uv = centeredUv;
+
+	vec2 cellSize = vec2(1.0 / u_divisions, 1.0 / u_divisions);
+
+	float modX = mod(uv.x - 0.5, cellSize.x);
+	float modY = mod(uv.y - 0.5, cellSize.y);
+
+	float time = float(u_time);
+
+	float noiseX = cellSize.x * floor((uv.x - 0.5) / cellSize.x);
+	noiseX += cellSize.x / 2.0;
+	noiseX += 0.5;
+	float noiseY = cellSize.y * floor((uv.y - 0.5) / cellSize.y);
+	noiseY += cellSize.y / 2.0;
+	noiseY += 0.5;
+
+	float ripple = getRipple(vec2(noiseX, noiseY));
+
+	float texSelector = snoise0to1(vec3(noiseX * 3.0, noiseY * 3.0, time * 0.00005));
+	if (ripple > 0.5) {
+		texSelector += 0.25;
+		//texSelector *= 1.5;
+		texSelector = min(texSelector, 1.0);
+	}
+
+	float scaleNoise = snoise0to1(vec3(noiseX * 0.5, noiseY * 0.5, time * 0.000025));
+	float scale = scaleNoise > 0.25 ? 0.75 : 0.4;
+	//float scale = 0.75;
+	if (ripple > 0.5) {
+		scale = 1.0;
+	}
+
+	float visibilityNoiseA = snoise0to1(vec3(noiseX, noiseY, time * 0.0000125));
+	float visibilityNoiseB = snoise0to1(vec3(noiseX * 8.0, noiseY * 8.0, time * 0.0000125));
+	float threshold = 0.6;
+	if (ripple > 0.5) threshold -= 0.1;
+	float visibility = 0.0;
+
+	//if (ripple > 0.5) {
+	//	visibility = 0.2;
+	//}
+
+	float colorNoise = snoise0to1(vec3(noiseX * 8.0, noiseY * 8.0, time * 0.00005));
+
+	//out_color = vec4(vec3(texSelector), 1.0);
+	//return;
+
+	// dots
+	if (visibility == 0.0 && visibilityNoiseA > 0.5) {
+		if (distance(vec2(modX / cellSize.x, modY / cellSize.y), vec2(0.5, 0.5)) < 0.05) {
+			out_color = vec4(1.0, 1.0, 1.0, 0.25);
+			return;
+		}
+	}
+
+	if (
+		(modX / cellSize.x) > (1.0 - scale) / 2.0 &&
+		(modX / cellSize.x) < 0.5 + (scale / 2.0) &&
+		(modY / cellSize.y) > (1.0 - scale) / 2.0 &&
+		(modY / cellSize.y) < 0.5 + (scale / 2.0)
+	) {
+		vec2 margin = vec2((1.0 - (0.5 + (scale / 2.0))) * cellSize.x, (1.0 - (0.5 + (scale / 2.0))) * cellSize.y);
+		vec2 transformedCoords = vec2(
+			(modX - margin.x) / (cellSize.x - (margin.x * 2.0)),
+			(modY - margin.y) / (cellSize.y - (margin.y * 2.0))
+		);
+		for (int i = 0; i < u_texturesCount; i++) {
+			if (texSelector <= (1.0 / float(u_texturesCount)) * float(i + 1)) {
+				out_color =
+					i == 1 ? texture(u_textures[1], transformedCoords) :
+					i == 2 ? texture(u_textures[2], transformedCoords) :
+					i == 3 ? texture(u_textures[3], transformedCoords) :
+					i == 4 ? texture(u_textures[4], transformedCoords) :
+					i == 5 ? texture(u_textures[5], transformedCoords) :
+					i == 6 ? texture(u_textures[6], transformedCoords) :
+					i == 7 ? texture(u_textures[7], transformedCoords) :
+					i == 8 ? texture(u_textures[8], transformedCoords) :
+					i == 9 ? texture(u_textures[9], transformedCoords) :
+					i == 10 ? texture(u_textures[10], transformedCoords) :
+					i == 11 ? texture(u_textures[11], transformedCoords) :
+					i == 12 ? texture(u_textures[12], transformedCoords) :
+					i == 13 ? texture(u_textures[13], transformedCoords) :
+					i == 14 ? texture(u_textures[14], transformedCoords) :
+					i == 15 ? texture(u_textures[15], transformedCoords) :
+					texture(u_textures[0], transformedCoords);
+
+				if (colorNoise > 0.9) {
+					out_color.g = 0.3;
+					out_color.b = 0.0;
+				} else if (colorNoise > 0.8) {
+					out_color.b = 0.0;
+				} else if (colorNoise > 0.6) {
+					out_color.r /= 1.25;
+					out_color.b = 0.0;
+				} else if (colorNoise > 0.35) {
+					out_color.r = 1.0;
+					out_color.g = 1.0;
+					out_color.b = 1.0;
+				} else {
+					out_color.r = 1.0;
+					out_color.g = 1.0;
+					out_color.b = 1.0;
+					out_color.a *= 0.25;
+				}
+
+				out_color.a *= visibility;
+
+				if (visibility == 0.0) {
+					out_color = vec4(1.0, 1.0, 1.0, ripple * 0.0125);
+				}
+
+				//out_color += vec4(vec3(1.0, 0.5, 0.0), getRipple(uv));
+				break;
+			}
+		}
+	} else {
+		out_color = vec4(vec3(0.0), 0.0);
+	}
+}
+`;
+
+const params = getUrlParams();
+
+const { gl, program, render } = makeGl(canvas, VERTEX_SHADER, FRAGMENT_SHADER);
+
+const u_seed = gl.getUniformLocation(program, 'u_seed');
+const u_divisions = gl.getUniformLocation(program, 'u_divisions');
+gl.uniform1f(u_seed, 1000);
+gl.uniform1f(u_divisions, params.divisions ?? 40);
+
+let ripples = [];
+const LIFE_TIME = 1000 * 2;
+
+function drop(timeStamp, x, y) {
+	if (ripples.length >= 16) return;
+	const _x = x ?? (Math.random() * 1) - 0.5;
+	const _y = y ?? (Math.random() * 1) - 0.5;
+	ripples.push({ position: [_x, _y], startTime: timeStamp, });
+}
+
+const uniformLocations_rp = [];
+const uniformLocations_rr = [];
+for (let i = 0; i < 16; i++) {
+	uniformLocations_rp.push(gl.getUniformLocation(program, `u_ripplePositions[${i.toString()}]`));
+	uniformLocations_rr.push(gl.getUniformLocation(program, `u_rippleRadiuses[${i.toString()}]`));
+}
+
+const textureUrls = [
+	'./assets/dot.png',
+	'./assets/dots.png',
+	'./assets/o1.png',
+	'./assets/o2.png',
+	'./assets/o3.png',
+	'./assets/o4.png',
+	'./assets/x1.png',
+	'./assets/x2.png',
+	'./assets/cross.png',
+	'./assets/slash1.png',
+	'./assets/slash2.png',
+	'./assets/corner.png',
+	'./assets/block.png',
+	'./assets/square-slash.png',
+	'./assets/stripe.png',
+	'./assets/fill.png',
+];
+
+const u_texturesCount = gl.getUniformLocation(program, 'u_texturesCount');
+gl.uniform1i(u_texturesCount, textureUrls.length);
+
+async function main() {
+	const textures = await Promise.all(textureUrls.map((url) => createTextureFromUrl(gl, url)));
+
+	for (let i = 0; i < textures.length; i++) {
+		const tex = textures[i];
+		
+		gl.activeTexture(gl.TEXTURE0 + i);
+		gl.bindTexture(gl.TEXTURE_2D, tex);
+		const u_texture = gl.getUniformLocation(program, `u_textures[${i}]`);
+		gl.uniform1i(u_texture, i);
+	}
+
+	let t = 0;
+
+	render((timeStamp) => {
+		t = timeStamp;
+
+		for (let i = 0; i < 16; i++) {
+			const p = uniformLocations_rp[i];
+			const r = uniformLocations_rr[i];
+			const ripple = ripples[i];
+			if (ripple == null) {
+				gl.uniform2f(p, 0, 0);
+				gl.uniform1f(r, 0.0);
+				continue;
+			}
+
+			const delta = timeStamp - ripple.startTime;
+
+			gl.uniform2f(p, ripple.position[0], ripple.position[1]);
+			gl.uniform1f(r, delta / LIFE_TIME);
+		}
+
+		ripples = ripples.filter(r => (timeStamp - r.startTime) < LIFE_TIME);
+	});
+
+	let lastClick = 0;
+
+	canvas.addEventListener('click', (ev) => {
+		if (t - lastClick < 400) return;
+		lastClick = t;
+		const rect = canvas.getBoundingClientRect();
+		const w = rect.width;
+		const h = rect.height;
+		const aspectX = w / Math.min(w, h);
+		const aspectY = h / Math.min(w, h);
+		const x = ((ev.clientX - rect.left) / w - 0.5) * aspectX;
+		const y = -((ev.clientY - rect.top) / h - 0.5) * aspectY;
+		console.log(x, y);
+		drop(t, x, y);
+	});
+}
+
+main();
+		</script>
+	</body>
+</html>
