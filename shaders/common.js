@@ -154,6 +154,10 @@ function makeGl(canvas, vertexShader, fragmentShader) {
 
 		gl.drawArrays(gl.TRIANGLES, 0, 6);
 
+		gl.clearColor(1, 1, 1, 1);
+gl.colorMask(false, false, false, true);
+gl.clear(gl.COLOR_BUFFER_BIT);
+
 		window.requestAnimationFrame(render);
 	}
 
