@@ -54,33 +54,35 @@ uniform float u_seed;
 out vec4 out_color;
 
 void main() {
-	float aspect_ratio = min(in_resolution.x, in_resolution.y) / max(in_resolution.x, in_resolution.y);
-	vec2 cellSize = in_resolution.x > in_resolution.y ? vec2((1.0 / u_divisions) * aspect_ratio, 1.0 / u_divisions) : vec2(1.0 / u_divisions, (1.0 / u_divisions) * aspect_ratio);
+	float x_ratio = max(in_resolution.x / in_resolution.y, 1.0);
+	float y_ratio = max(in_resolution.y / in_resolution.x, 1.0);
 
-	float modX = mod(in_uv.x - 0.5, cellSize.x);
-	float modY = mod(in_uv.y - 0.5, cellSize.y);
+	vec2 centeredUv = (in_uv - vec2(0.5, 0.5)) * vec2(x_ratio, y_ratio);
+	vec2 uv = centeredUv;
+
+	vec2 cellSize = vec2(1.0 / u_divisions, 1.0 / u_divisions);
+
+	float modX = mod(uv.x - 0.5, cellSize.x);
+	float modY = mod(uv.y - 0.5, cellSize.y);
 
 	float time = float(u_time);
 
-	float noiseScale = 1.0;
-	// TODO: アスペクト比考慮
-	float noiseX = cellSize.x * floor((in_uv.x - 0.5) / cellSize.x);
+	float noiseX = cellSize.x * floor((uv.x - 0.5) / cellSize.x);
 	noiseX += cellSize.x / 2.0;
-	noiseX += 0.5;
-	float noiseY = cellSize.y * floor((in_uv.y - 0.5) / cellSize.y);
+	float noiseY = cellSize.y * floor((uv.y - 0.5) / cellSize.y);
 	noiseY += cellSize.y / 2.0;
-	noiseY += 0.5;
 
 	float texSelector = (snoise(vec3(noiseX * 3.0, noiseY * 3.0, time * 0.0001)) + 1.0) / 2.0;
 
-	//float scale = (snoise(vec3(noiseX * 0.5, noiseY * 0.5, time * 0.0001)) + 1.0) / 2.0;
-	float scale = 0.75;
+	float scaleNoise = (snoise(vec3(noiseX * 0.5, noiseY * 0.5, time * 0.0001)) + 1.0) / 2.0;
+	float scale = scaleNoise > 0.3 ? 0.75 : 0.3;
+	//float scale = 0.75;
 
 	float opacityNoiseA = snoise(vec3(noiseX, noiseY, time * 0.0001));
 	opacityNoiseA = (opacityNoiseA + 1.0) / 2.0;
 	float opacityNoiseB = snoise(vec3(noiseX * 8.0, noiseY * 8.0, time * 0.0001));
 	opacityNoiseB = (opacityNoiseB + 1.0) / 2.0;
-	float opacity = mix(opacityNoiseA, opacityNoiseB, 0.3) > 0.65 ? 1.0 : 0.0;
+	float opacity = mix(opacityNoiseA, opacityNoiseB, 0.5) > 0.65 ? 1.0 : 0.0;
 
 	//out_color = vec4(vec3(texSelector), 1.0);
 	//return;
