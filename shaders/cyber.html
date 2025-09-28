@@ -83,6 +83,8 @@ float getRipple(vec2 uv) {
 }
 
 void main() {
+	float time = float(u_time);
+
 	float x_ratio = max(in_resolution.x / in_resolution.y, 1.0);
 	float y_ratio = max(in_resolution.y / in_resolution.x, 1.0);
 
@@ -91,10 +93,44 @@ void main() {
 
 	vec2 cellSize = vec2(1.0 / u_divisions, 1.0 / u_divisions);
 
+	float border = 0.25;
+
 	float modX = mod(uv.x - 0.5, cellSize.x);
 	float modY = mod(uv.y - 0.5, cellSize.y);
 
-	float time = float(u_time);
+	vec2 cellSize2 = cellSize * 2.0;
+	float modX2 = mod(uv.x - 0.5, cellSize2.x);
+	float modY2 = mod(uv.y - 0.5, cellSize2.y);
+	vec2 cellSize4 = cellSize * 4.0;
+	float modX4 = mod(uv.x - 0.5, cellSize4.x);
+	float modY4 = mod(uv.y - 0.5, cellSize4.y);
+
+	float noiseX2 = cellSize2.x * floor((uv.x - 0.5) / cellSize2.x);
+	noiseX2 += cellSize2.x / 2.0;
+	noiseX2 += 0.5;
+	float noiseY2 = cellSize2.y * floor((uv.y - 0.5) / cellSize2.y);
+	noiseY2 += cellSize2.y / 2.0;
+	noiseY2 += 0.5;
+	float noiseX4 = cellSize4.x * floor((uv.x - 0.5) / cellSize4.x);
+	noiseX4 += cellSize4.x / 2.0;
+	noiseX4 += 0.5;
+	float noiseY4 = cellSize4.y * floor((uv.y - 0.5) / cellSize4.y);
+	noiseY4 += cellSize4.y / 2.0;
+	noiseY4 += 0.5;
+
+	float cellMultiplier2Noise = snoise0to1(vec3(noiseX2 * 3.0, noiseY2 * 3.0, time * 0.00005));
+	float cellMultiplier4Noise = snoise0to1(vec3(noiseX4 * 3.0, noiseY4 * 3.0, time * 0.00005));
+	if (cellMultiplier4Noise > 0.9) {
+		modX = modX4;
+		modY = modY4;
+		cellSize = cellSize4;
+		border /= 4.0;
+	} else if (cellMultiplier2Noise > 0.75) {
+		modX = modX2;
+		modY = modY2;
+		cellSize = cellSize2;
+		border /= 2.0;
+	}
 
 	float noiseX = cellSize.x * floor((uv.x - 0.5) / cellSize.x);
 	noiseX += cellSize.x / 2.0;
@@ -113,8 +149,9 @@ void main() {
 	}
 
 	float scaleNoise = snoise0to1(vec3(noiseX * 0.5, noiseY * 0.5, time * 0.000025));
-	float scale = scaleNoise > 0.25 ? 0.75 : 0.4;
-	//float scale = 0.75;
+	//float scale = scaleNoise > 0.25 ? 0.75 : 0.4;
+	float scale = scaleNoise > 0.25 ? 1.0 : 0.4;
+	scale = min(scale, 1.0 - border);
 	if (ripple > 0.5) {
 		scale = 1.0;
 	}

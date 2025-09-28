@@ -17,7 +17,7 @@ function getUrlParam(name, type) {
 	if (type === 'number') return parseFloat(params[name]);
 	if (type === 'int') return parseInt(params[name]);
 	if (type === 'float') return parseFloat(params[name]);
-	if (type === 'bool') return params[name] === 'true';
+	if (type === 'bool') return params[name] !== 'false';
 	if (type === 'string') return params[name];
 }
 
