@@ -118,14 +118,14 @@ void main() {
 		scale = 1.0;
 	}
 
-	float opacityNoiseA = snoise0to1(vec3(noiseX, noiseY, time * 0.000025));
-	float opacityNoiseB = snoise0to1(vec3(noiseX * 8.0, noiseY * 8.0, time * 0.000025));
+	float visibilityNoiseA = snoise0to1(vec3(noiseX, noiseY, time * 0.000025));
+	float visibilityNoiseB = snoise0to1(vec3(noiseX * 8.0, noiseY * 8.0, time * 0.000025));
 	float threshold = 0.6;
 	if (ripple > 0.5) threshold -= 0.1;
-	float opacity = mix(opacityNoiseA, opacityNoiseB, 0.5) > threshold ? 1.0 : 0.0;
+	float visibility = mix(visibilityNoiseA, visibilityNoiseB, 0.5) > threshold ? 1.0 : 0.0;
 
 	//if (ripple > 0.5) {
-	//	opacity = 0.2;
+	//	visibility = 0.2;
 	//}
 
 	float colorNoise = snoise0to1(vec3(noiseX * 8.0, noiseY * 8.0, time * 0.00005));
@@ -134,7 +134,7 @@ void main() {
 	//return;
 
 	// dots
-	if (opacity == 0.0 && opacityNoiseA > 0.5) {
+	if (visibility == 0.0 && visibilityNoiseA > 0.5) {
 		if (distance(vec2(modX / cellSize.x, modY / cellSize.y), vec2(0.5, 0.5)) < 0.05) {
 			out_color = vec4(1.0, 1.0, 1.0, 0.25);
 			return;
@@ -191,9 +191,9 @@ void main() {
 					out_color.a *= 0.25;
 				}
 
-				out_color.a *= opacity;
+				out_color.a *= visibility;
 
-				if (opacity == 0.0) {
+				if (visibility == 0.0) {
 					out_color = vec4(1.0, 1.0, 1.0, ripple * 0.0125);
 				}
 
@@ -212,7 +212,7 @@ const { gl, program, render } = makeGl(canvas, VERTEX_SHADER, FRAGMENT_SHADER);
 const u_seed = gl.getUniformLocation(program, 'u_seed');
 const u_divisions = gl.getUniformLocation(program, 'u_divisions');
 gl.uniform1f(u_seed, 1000);
-gl.uniform1f(u_divisions, 32);
+gl.uniform1f(u_divisions, 40);
 
 let ripples = [];
 const LIFE_TIME = 1000 * 2;
