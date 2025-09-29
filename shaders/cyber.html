@@ -53,6 +53,7 @@ uniform float u_divisions;
 uniform float u_seed;
 uniform vec2 u_ripplePositions[16];
 uniform float u_rippleRadiuses[16];
+uniform vec2 u_pointer;
 out vec4 out_color;
 
 float getRipple(vec2 uv) {
@@ -77,6 +78,20 @@ float getRipple(vec2 uv) {
 		//if (d < ru + thickness) {
 		//	v += (0.3 * (1.0 - ru));
 		//}
+	}
+
+	return v;
+}
+
+float getPointerForce(vec2 uv) {
+	float v = 0.0;
+	float thickness = 0.05;
+	float radius = 0.1;
+
+	float d = distance(uv, u_pointer);
+	if (d < radius + thickness && d > radius - thickness) {
+		float gradate =  abs(d - radius + thickness) / thickness;
+		v += ((1.0 - radius) * gradate);
 	}
 
 	return v;
@@ -140,11 +155,16 @@ void main() {
 	noiseY += 0.5;
 
 	float ripple = getRipple(vec2(noiseX, noiseY));
+	float pointerForce = getPointerForce(vec2(noiseX, noiseY));
 
 	float texSelector = snoise0to1(vec3(noiseX * 3.0, noiseY * 3.0, time * 0.00002));
 	if (ripple > 0.5) {
 		texSelector += 0.25;
 		//texSelector *= 1.5;
+		texSelector = min(texSelector, 1.0);
+	}
+	if (pointerForce > 0.0) {
+		texSelector += pointerForce * 0.25;
 		texSelector = min(texSelector, 1.0);
 	}
 
@@ -175,11 +195,15 @@ void main() {
 	if (visibility == 0.0) {
 		float n = mix(visibilityNoiseA, visibilityNoiseB, 0.2);
 		if (n > 0.75) {
-			out_color = vec4(1.0, 1.0, 1.0, 0.05);
+			// iOSだとおかしい
+			//out_color = vec4(1.0, 1.0, 1.0, 0.05);
+			out_color = vec4(0.05, 0.05, 0.05, 1.0);
 			return;
 		} else if (n > 0.5) {
 			if (distance(vec2(modX / cellSize.x, modY / cellSize.y), vec2(0.5, 0.5)) < 0.05) {
-				out_color = vec4(1.0, 1.0, 1.0, 0.25);
+				// iOSだとおかしい
+				//out_color = vec4(1.0, 1.0, 1.0, 0.25);
+				out_color = vec4(0.25, 0.25, 0.25, 1.0);
 				return;
 			}
 		}
@@ -219,8 +243,8 @@ void main() {
 				if (colorNoise > 0.9) {
 					out_color.g *= 0.3;
 					out_color.b = 0.0;
-				} else if (colorNoise > 0.85) {
-					out_color.b = 0.0;
+				//} else if (colorNoise > 0.85) {
+				//	out_color.b = 0.0;
 				} else if (colorNoise > 0.7) {
 					out_color.r /= 1.25;
 					out_color.b = 0.0;
@@ -309,6 +333,9 @@ const textureUrls = [
 const u_texturesCount = gl.getUniformLocation(program, 'u_texturesCount');
 gl.uniform1i(u_texturesCount, textureUrls.length);
 
+const u_pointer = gl.getUniformLocation(program, 'u_pointer');
+gl.uniform2f(u_pointer, 0.0, 0.0);
+
 async function main() {
 	const textures = await Promise.all(textureUrls.map((url) => createTextureFromUrl(gl, url)));
 
@@ -359,6 +386,17 @@ async function main() {
 		const y = -((ev.clientY - rect.top) / h - 0.5) * aspectY;
 		console.log(x, y);
 		drop(t, x, y);
+	});
+
+	window.addEventListener('pointermove', (ev) => {
+		const rect = canvas.getBoundingClientRect();
+		const w = rect.width;
+		const h = rect.height;
+		const aspectX = w / Math.min(w, h);
+		const aspectY = h / Math.min(w, h);
+		const x = ((ev.clientX - rect.left) / w - 0.5) * aspectX;
+		const y = -((ev.clientY - rect.top) / h - 0.5) * aspectY;
+		gl.uniform2f(u_pointer, x, y);
 	});
 }
 
