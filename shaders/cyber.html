@@ -110,54 +110,40 @@ void main() {
 
 	float border = 0.25;
 
-	float modX = mod(uv.x - 0.5, cellSize.x);
-	float modY = mod(uv.y - 0.5, cellSize.y);
+	vec2 modUv = vec2(mod(uv - 0.5, cellSize));
 
 	vec2 cellSize2 = cellSize * 2.0;
-	float modX2 = mod(uv.x - 0.5, cellSize2.x);
-	float modY2 = mod(uv.y - 0.5, cellSize2.y);
+	vec2 modUv2 = vec2(mod(uv - 0.5, cellSize2));
 	vec2 cellSize4 = cellSize * 4.0;
-	float modX4 = mod(uv.x - 0.5, cellSize4.x);
-	float modY4 = mod(uv.y - 0.5, cellSize4.y);
+	vec2 modUv4 = vec2(mod(uv - 0.5, cellSize4));
 
-	float noiseX2 = cellSize2.x * floor((uv.x - 0.5) / cellSize2.x);
-	noiseX2 += cellSize2.x / 2.0;
-	noiseX2 += 0.5;
-	float noiseY2 = cellSize2.y * floor((uv.y - 0.5) / cellSize2.y);
-	noiseY2 += cellSize2.y / 2.0;
-	noiseY2 += 0.5;
-	float noiseX4 = cellSize4.x * floor((uv.x - 0.5) / cellSize4.x);
-	noiseX4 += cellSize4.x / 2.0;
-	noiseX4 += 0.5;
-	float noiseY4 = cellSize4.y * floor((uv.y - 0.5) / cellSize4.y);
-	noiseY4 += cellSize4.y / 2.0;
-	noiseY4 += 0.5;
+	vec2 cellUv2 = cellSize2 * floor((uv - 0.5) / cellSize2);
+	cellUv2 += cellSize2 / 2.0;
+	cellUv2 += 0.5;
+	vec2 cellUv4 = cellSize4 * floor((uv - 0.5) / cellSize4);
+	cellUv4 += cellSize4 / 2.0;
+	cellUv4 += 0.5;
 
-	float cellMultiplier2Noise = snoise0to1(vec3(noiseX2 * 3.0, noiseY2 * 3.0, time * 0.00005));
-	float cellMultiplier4Noise = snoise0to1(vec3(noiseX4 * 3.0, noiseY4 * 3.0, time * 0.00005));
+	float cellMultiplier2Noise = snoise0to1(vec3(cellUv2.x * 3.0, cellUv2.y * 3.0, time * 0.00005));
+	float cellMultiplier4Noise = snoise0to1(vec3(cellUv4.x * 3.0, cellUv4.y * 3.0, time * 0.00005));
 	if (cellMultiplier4Noise > 0.9) {
-		modX = modX4;
-		modY = modY4;
+		modUv = modUv4;
 		cellSize = cellSize4;
 		border /= 4.0;
 	} else if (cellMultiplier2Noise > 0.75) {
-		modX = modX2;
-		modY = modY2;
+		modUv = modUv2;
 		cellSize = cellSize2;
 		border /= 2.0;
 	}
 
-	float noiseX = cellSize.x * floor((uv.x - 0.5) / cellSize.x);
-	noiseX += cellSize.x / 2.0;
-	noiseX += 0.5;
-	float noiseY = cellSize.y * floor((uv.y - 0.5) / cellSize.y);
-	noiseY += cellSize.y / 2.0;
-	noiseY += 0.5;
+	vec2 cellUv = cellSize * floor((uv - 0.5) / cellSize);
+	cellUv += cellSize / 2.0;
+	cellUv += 0.5;
 
-	float ripple = getRipple(vec2(noiseX, noiseY));
-	float pointerForce = getPointerForce(vec2(noiseX, noiseY));
+	float ripple = getRipple(cellUv);
+	float pointerForce = getPointerForce(cellUv);
 
-	float texSelector = snoise0to1(vec3(noiseX * 3.0, noiseY * 3.0, time * 0.00002));
+	float texSelector = snoise0to1(vec3(cellUv * 3.0, time * 0.00002));
 	if (ripple > 0.5) {
 		texSelector += 0.25;
 		//texSelector *= 1.5;
@@ -168,7 +154,7 @@ void main() {
 		texSelector = min(texSelector, 1.0);
 	}
 
-	float scaleNoise = snoise0to1(vec3(noiseX * 0.7, noiseY * 0.7, time * 0.000025));
+	float scaleNoise = snoise0to1(vec3(cellUv * 0.7, time * 0.000025));
 	//float scale = scaleNoise > 0.25 ? 0.75 : 0.4;
 	float scale = scaleNoise > 0.25 ? 1.0 : 0.4;
 	scale = min(scale, 1.0 - border);
@@ -176,8 +162,8 @@ void main() {
 		scale = 1.0;
 	}
 
-	float visibilityNoiseA = snoise0to1(vec3(noiseX, noiseY, time * 0.0000125));
-	float visibilityNoiseB = snoise0to1(vec3(noiseX * 8.0, noiseY * 8.0, time * 0.0000125));
+	float visibilityNoiseA = snoise0to1(vec3(cellUv, time * 0.0000125));
+	float visibilityNoiseB = snoise0to1(vec3(cellUv * 8.0, time * 0.0000125));
 	float threshold = 0.65;
 	if (ripple > 0.5) threshold -= 0.1;
 	float visibility = mix(visibilityNoiseA, visibilityNoiseB, 0.5) > threshold ? 1.0 : 0.0;
@@ -186,7 +172,7 @@ void main() {
 	//	visibility = 0.2;
 	//}
 
-	float colorNoise = snoise0to1(vec3(noiseX * 8.0, noiseY * 8.0, time * 0.00005));
+	float colorNoise = snoise0to1(vec3(cellUv * 8.0, time * 0.00005));
 
 	//out_color = vec4(vec3(texSelector), 1.0);
 	//return;
@@ -200,7 +186,7 @@ void main() {
 			out_color = vec4(0.05, 0.05, 0.05, 1.0);
 			return;
 		} else if (n > 0.5) {
-			if (distance(vec2(modX / cellSize.x, modY / cellSize.y), vec2(0.5, 0.5)) < 0.05) {
+			if (distance(modUv / cellSize, vec2(0.5, 0.5)) < 0.05) {
 				// iOSだとおかしい
 				//out_color = vec4(1.0, 1.0, 1.0, 0.25);
 				out_color = vec4(0.25, 0.25, 0.25, 1.0);
@@ -210,16 +196,13 @@ void main() {
 	}
 
 	if (
-		(modX / cellSize.x) > (1.0 - scale) / 2.0 &&
-		(modX / cellSize.x) < 0.5 + (scale / 2.0) &&
-		(modY / cellSize.y) > (1.0 - scale) / 2.0 &&
-		(modY / cellSize.y) < 0.5 + (scale / 2.0)
+		(modUv.x / cellSize.x) > (1.0 - scale) / 2.0 &&
+		(modUv.x / cellSize.x) < 0.5 + (scale / 2.0) &&
+		(modUv.y / cellSize.y) > (1.0 - scale) / 2.0 &&
+		(modUv.y / cellSize.y) < 0.5 + (scale / 2.0)
 	) {
-		vec2 margin = vec2((1.0 - (0.5 + (scale / 2.0))) * cellSize.x, (1.0 - (0.5 + (scale / 2.0))) * cellSize.y);
-		vec2 transformedCoords = vec2(
-			(modX - margin.x) / (cellSize.x - (margin.x * 2.0)),
-			(modY - margin.y) / (cellSize.y - (margin.y * 2.0))
-		);
+		vec2 margin = (1.0 - (0.5 + (scale / 2.0))) * cellSize;
+		vec2 transformedCoords = (modUv - margin) / (cellSize - (margin * 2.0));
 		for (int i = 0; i < u_texturesCount; i++) {
 			if (texSelector <= (1.0 / float(u_texturesCount)) * float(i + 1)) {
 				out_color =
