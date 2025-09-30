@@ -172,6 +172,19 @@ function makeGl(canvas, vertexShader, fragmentShader) {
 	let hook;
 
 	function render(frame) {
+		// debug
+		//const timeStamp = 604800000 + initialTime + frame;
+		const timeStamp = initialTime + frame;
+		gl.uniform1i(u_time, timeStamp);
+
+		if (hook) hook(timeStamp);
+
+		gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+		window.requestAnimationFrame(render);
+	}
+
+	window.addEventListener('resize', () => {
 		let sizeChanged = false;
 		if (Math.abs(height - canvas.offsetHeight) > 2) {
 			height = canvas.offsetHeight;
@@ -187,18 +200,7 @@ function makeGl(canvas, vertexShader, fragmentShader) {
 			gl.uniform2fv(in_resolution, [width * pixelRatio, height * pixelRatio]);
 			gl.viewport(0, 0, width * pixelRatio, height * pixelRatio);
 		}
-
-		// debug
-		//const timeStamp = 604800000 + initialTime + frame;
-		const timeStamp = initialTime + frame;
-		gl.uniform1i(u_time, timeStamp);
-
-		if (hook) hook(timeStamp);
-
-		gl.drawArrays(gl.TRIANGLES, 0, 6);
-
-		window.requestAnimationFrame(render);
-	}
+	});
 
 	return {
 		gl: gl,

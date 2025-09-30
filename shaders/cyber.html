@@ -85,6 +85,8 @@ float getRipple(vec2 uv) {
 }
 
 float getPointerForce(vec2 uv) {
+	if (u_pointer.x == -1.0 && u_pointer.y == -1.0) return 0.0;
+
 	float v = 0.0;
 	float thickness = 0.05;
 	float radius = 0.1;
@@ -204,6 +206,9 @@ void main() {
 	) {
 		vec2 margin = (1.0 - (0.5 + (scale / 2.0))) * cellSize;
 		vec2 transformedCoords = (modUv - margin) / (cellSize - (margin * 2.0));
+		
+		// 正しい向きにする
+		transformedCoords.y = 1.0 - transformedCoords.y;
 
 		out_color = texture(u_textures, vec3(transformedCoords, texSelector * float(u_texturesCount - 1)));
 
@@ -274,30 +279,40 @@ for (let i = 0; i < 4; i++) {
 }
 
 const textureUrls = [
-	'./assets/dot.png',
-	'./assets/dots.png',
-	'./assets/o1.png',
-	'./assets/o2.png',
-	'./assets/o3.png',
-	'./assets/o4.png',
-	'./assets/x1.png',
-	'./assets/x2.png',
-	'./assets/cross1.png',
-	'./assets/cross2.png',
-	'./assets/slash1.png',
-	'./assets/slash2.png',
-	'./assets/corner.png',
-	'./assets/block.png',
-	'./assets/square-slash.png',
-	'./assets/stripe.png',
-	'./assets/fill.png',
+	'./assets/symbols/dot.png',
+	'./assets/symbols/dots.png',
+	'./assets/symbols/o1.png',
+	'./assets/symbols/o2.png',
+	'./assets/symbols/o3.png',
+	'./assets/symbols/o4.png',
+	'./assets/symbols/x1.png',
+	'./assets/symbols/x2.png',
+	'./assets/symbols/cross1.png',
+	'./assets/symbols/cross2.png',
+	'./assets/symbols/slash1.png',
+	'./assets/symbols/slash2.png',
+	'./assets/symbols/corner.png',
+	'./assets/symbols/block.png',
+	'./assets/symbols/square-slash.png',
+	'./assets/symbols/stripe.png',
+	'./assets/symbols/fill.png',
+	//'./assets/chars/0.png',
+	//'./assets/chars/1.png',
+	//'./assets/chars/2.png',
+	//'./assets/chars/3.png',
+	//'./assets/chars/4.png',
+	//'./assets/chars/5.png',
+	//'./assets/chars/6.png',
+	//'./assets/chars/7.png',
+	//'./assets/chars/8.png',
+	//'./assets/chars/9.png',
 ];
 
 const u_texturesCount = gl.getUniformLocation(program, 'u_texturesCount');
 gl.uniform1i(u_texturesCount, textureUrls.length);
 
 const u_pointer = gl.getUniformLocation(program, 'u_pointer');
-gl.uniform2f(u_pointer, 0.0, 0.0);
+gl.uniform2f(u_pointer, -1.0, -1.0);
 
 async function main() {
 	const tex = await createTextureArrayFromUrls(gl, 256, 256, textureUrls);
