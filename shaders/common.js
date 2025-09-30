@@ -92,14 +92,39 @@ async function createTextureFromUrl(gl, url) {
 	return texture;
 }
 
-async function createTextureArrayFromUrl(gl, url) {
+async function createTextureArrayFromUrls(gl, width, height, urls) {
 	const texture = gl.createTexture();
-	const image = new Image();
-	image.crossOrigin = 'anonymous';
-	image.src = url;
-	await image.decode();
+
+	const elementsPerTexture = width * height * 4;
+
+	const pixelData = new Uint8Array(elementsPerTexture * urls.length);
+
+	const images = await Promise.all(urls.map((url) => {
+		const image = new Image();
+		image.crossOrigin = 'anonymous';
+		image.src = url;
+		return image.decode().then(() => image);
+	}));
+
+	const canvas = document.createElement('canvas');
+	canvas.width = width;
+	canvas.height = height;
+	const context2d = canvas.getContext('2d');
+
+	for (let i = 0; i < urls.length; i++) {
+		const image = images[i];
+		context2d.clearRect(0, 0, width, height);
+		context2d.drawImage(image, 0, 0);
+		const imageData = context2d.getImageData(0, 0, width, height);
+		pixelData.set(imageData.data, elementsPerTexture * i);
+	}
+
 	gl.bindTexture(gl.TEXTURE_2D_ARRAY, texture);
-	gl.texImage3D(gl.TEXTURE_2D_ARRAY, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+	gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+	gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+	gl.texImage3D(gl.TEXTURE_2D_ARRAY, 0, gl.RGBA, width, height, urls.length, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixelData);
 	gl.generateMipmap(gl.TEXTURE_2D_ARRAY);
 	gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);
 	return texture;

@@ -41,13 +41,14 @@ void main() {
 
 const FRAGMENT_SHADER = `#version 300 es
 precision mediump float;
+precision mediump sampler2DArray;
 
 ${GLSL_COMMON}
 
 in vec2 in_uv;
 uniform vec2 in_resolution;
 uniform int u_time;
-uniform sampler2D u_textures[16];
+uniform sampler2DArray u_textures;
 uniform int u_texturesCount;
 uniform float u_divisions;
 uniform float u_seed;
@@ -205,23 +206,7 @@ void main() {
 		vec2 transformedCoords = (modUv - margin) / (cellSize - (margin * 2.0));
 		for (int i = 0; i < u_texturesCount; i++) {
 			if (texSelector <= (1.0 / float(u_texturesCount)) * float(i + 1)) {
-				out_color =
-					i == 1 ? texture(u_textures[1], transformedCoords) :
-					i == 2 ? texture(u_textures[2], transformedCoords) :
-					i == 3 ? texture(u_textures[3], transformedCoords) :
-					i == 4 ? texture(u_textures[4], transformedCoords) :
-					i == 5 ? texture(u_textures[5], transformedCoords) :
-					i == 6 ? texture(u_textures[6], transformedCoords) :
-					i == 7 ? texture(u_textures[7], transformedCoords) :
-					i == 8 ? texture(u_textures[8], transformedCoords) :
-					i == 9 ? texture(u_textures[9], transformedCoords) :
-					i == 10 ? texture(u_textures[10], transformedCoords) :
-					i == 11 ? texture(u_textures[11], transformedCoords) :
-					i == 12 ? texture(u_textures[12], transformedCoords) :
-					i == 13 ? texture(u_textures[13], transformedCoords) :
-					i == 14 ? texture(u_textures[14], transformedCoords) :
-					i == 15 ? texture(u_textures[15], transformedCoords) :
-					texture(u_textures[0], transformedCoords);
+				out_color = texture(u_textures, vec3(transformedCoords, float(i)));
 
 				if (colorNoise > 0.9) {
 					out_color.g *= 0.3;
@@ -303,7 +288,8 @@ const textureUrls = [
 	'./assets/o4.png',
 	'./assets/x1.png',
 	'./assets/x2.png',
-	'./assets/cross.png',
+	'./assets/cross1.png',
+	'./assets/cross2.png',
 	'./assets/slash1.png',
 	'./assets/slash2.png',
 	'./assets/corner.png',
@@ -320,16 +306,12 @@ const u_pointer = gl.getUniformLocation(program, 'u_pointer');
 gl.uniform2f(u_pointer, 0.0, 0.0);
 
 async function main() {
-	const textures = await Promise.all(textureUrls.map((url) => createTextureFromUrl(gl, url)));
+	const tex = await createTextureArrayFromUrls(gl, 256, 256, textureUrls);
 
-	for (let i = 0; i < textures.length; i++) {
-		const tex = textures[i];
-		
-		gl.activeTexture(gl.TEXTURE0 + i);
-		gl.bindTexture(gl.TEXTURE_2D, tex);
-		const u_texture = gl.getUniformLocation(program, `u_textures[${i}]`);
-		gl.uniform1i(u_texture, i);
-	}
+	gl.activeTexture(gl.TEXTURE0);
+	gl.bindTexture(gl.TEXTURE_2D_ARRAY, tex);
+	const u_texture = gl.getUniformLocation(program, `u_textures`);
+	gl.uniform1i(u_texture, 0);
 
 	let t = 0;
 
