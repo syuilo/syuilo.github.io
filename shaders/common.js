@@ -303,7 +303,7 @@ vec4 taylorInvSqrt(vec4 r) {
 
 // -1.0 ~ +1.0
 float snoise(vec3 v) {
-	const vec2 C = vec2(1.0/6.0, 1.0/3.0);
+	const vec2 C = vec2(1.0 / 6.0, 1.0 / 3.0);
 	const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
 
 	vec3 i = floor(v + dot(v, C.yyy));
