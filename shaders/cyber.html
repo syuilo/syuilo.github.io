@@ -48,6 +48,7 @@ ${GLSL_COMMON}
 in vec2 in_uv;
 uniform vec2 in_resolution;
 uniform int u_time;
+uniform float u_timeFactor;
 uniform sampler2DArray u_textures;
 uniform int u_texturesCount;
 uniform float u_divisions;
@@ -101,7 +102,7 @@ float getPointerForce(vec2 uv) {
 }
 
 void main() {
-	float time = float(u_time);
+	float time = float(u_time) * u_timeFactor;
 
 	float x_ratio = max(in_resolution.x / in_resolution.y, 1.0);
 	float y_ratio = max(in_resolution.y / in_resolution.x, 1.0);
@@ -109,7 +110,7 @@ void main() {
 	vec2 centeredUv = (in_uv - vec2(0.5, 0.5)) * vec2(x_ratio, y_ratio);
 	vec2 uv = centeredUv;
 
-	vec2 scroll = vec2(0.0, -time * 0.0002);
+	vec2 scroll = vec2(0.0, -time * 0.0001);
 
 	vec2 cellSize = vec2(1.0 / u_divisions, 1.0 / u_divisions);
 
@@ -129,8 +130,8 @@ void main() {
 	cellUv4 += cellSize4 / 2.0;
 	cellUv4 += 0.5;
 
-	float cellMultiplier2Noise = snoise0to1(vec3(cellUv2.x * 3.0, cellUv2.y * 3.0, time * 0.00005));
-	float cellMultiplier4Noise = snoise0to1(vec3(cellUv4.x * 3.0, cellUv4.y * 3.0, time * 0.00005));
+	float cellMultiplier2Noise = snoise0to1(vec3(cellUv2.x * 3.0, cellUv2.y * 3.0, time * 0.000025));
+	float cellMultiplier4Noise = snoise0to1(vec3(cellUv4.x * 3.0, cellUv4.y * 3.0, time * 0.000025));
 	if (cellMultiplier4Noise > 0.9) {
 		modUv = modUv4;
 		cellSize = cellSize4;
@@ -148,7 +149,7 @@ void main() {
 	float ripple = getRipple(cellUv);
 	float pointerForce = getPointerForce(cellUv);
 
-	float texSelector = snoise0to1(vec3((cellUv * 3.0) + scroll, time * 0.00002));
+	float texSelector = snoise0to1(vec3((cellUv * 3.0) + scroll, time * 0.00001));
 	if (ripple > 0.5) {
 		texSelector += 0.25;
 		//texSelector *= 1.5;
@@ -159,7 +160,7 @@ void main() {
 		texSelector = min(texSelector, 1.0);
 	}
 
-	float scaleNoise = snoise0to1(vec3(cellUv * 0.7, time * 0.000025));
+	float scaleNoise = snoise0to1(vec3(cellUv * 0.7, time * 0.0000125));
 	//float scale = scaleNoise > 0.25 ? 0.75 : 0.4;
 	float scale = scaleNoise > 0.25 ? 1.0 : 0.4;
 	scale = min(scale, 1.0 - border);
@@ -167,8 +168,8 @@ void main() {
 		scale = 1.0;
 	}
 
-	float visibilityNoiseA = snoise0to1(vec3(cellUv + scroll, time * 0.0000125));
-	float visibilityNoiseB = snoise0to1(vec3(cellUv * 8.0, time * 0.0000125));
+	float visibilityNoiseA = snoise0to1(vec3(cellUv + scroll, time * 0.00000625));
+	float visibilityNoiseB = snoise0to1(vec3(cellUv * 8.0, time * 0.00000625));
 	float threshold = 0.65;
 	if (ripple > 0.5) threshold -= 0.1;
 	float visibility = mix(visibilityNoiseA, visibilityNoiseB, 0.5) > threshold ? 1.0 : 0.0;
@@ -177,7 +178,7 @@ void main() {
 	//	visibility = 0.2;
 	//}
 
-	float colorNoise = snoise0to1(vec3((cellUv * 8.0) + scroll, time * 0.00005));
+	float colorNoise = snoise0to1(vec3((cellUv * 8.0) + scroll, time * 0.000025));
 
 	//out_color = vec4(vec3(texSelector), 1.0);
 	//return;
@@ -258,8 +259,10 @@ const { gl, program, render } = makeGl(canvas, VERTEX_SHADER, FRAGMENT_SHADER, 3
 
 const u_seed = gl.getUniformLocation(program, 'u_seed');
 const u_divisions = gl.getUniformLocation(program, 'u_divisions');
+const u_timeFactor = gl.getUniformLocation(program, 'u_timeFactor');
 gl.uniform1f(u_seed, 1000);
 gl.uniform1f(u_divisions, getUrlParam('divisions', 'int') ?? 40);
+gl.uniform1f(u_timeFactor, getUrlParam('timeFactor', 'float') ?? 1.0);
 
 let ripples = [];
 const LIFE_TIME = 1000 * 2;
