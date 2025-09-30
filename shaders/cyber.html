@@ -52,8 +52,8 @@ uniform sampler2DArray u_textures;
 uniform int u_texturesCount;
 uniform float u_divisions;
 uniform float u_seed;
-uniform vec2 u_ripplePositions[16];
-uniform float u_rippleRadiuses[16];
+uniform vec2 u_ripplePositions[4];
+uniform float u_rippleRadiuses[4];
 uniform vec2 u_pointer;
 out vec4 out_color;
 
@@ -61,7 +61,7 @@ float getRipple(vec2 uv) {
 	float v = 0.0;
 	float thickness = 0.075;
 
-	for (int i = 0; i < 16; i++) {
+	for (int i = 0; i < 4; i++) {
 		float ru = u_rippleRadiuses[i];
 		vec2 rp = u_ripplePositions[i];
 
@@ -266,7 +266,7 @@ let ripples = [];
 const LIFE_TIME = 1000 * 2;
 
 function drop(timeStamp, x, y) {
-	if (ripples.length >= 16) return;
+	if (ripples.length >= 4) return;
 	const _x = x ?? (Math.random() * 1) - 0.5;
 	const _y = y ?? (Math.random() * 1) - 0.5;
 	ripples.push({ position: [_x, _y], startTime: timeStamp, });
@@ -274,7 +274,7 @@ function drop(timeStamp, x, y) {
 
 const uniformLocations_rp = [];
 const uniformLocations_rr = [];
-for (let i = 0; i < 16; i++) {
+for (let i = 0; i < 4; i++) {
 	uniformLocations_rp.push(gl.getUniformLocation(program, `u_ripplePositions[${i.toString()}]`));
 	uniformLocations_rr.push(gl.getUniformLocation(program, `u_rippleRadiuses[${i.toString()}]`));
 }
@@ -318,7 +318,7 @@ async function main() {
 	render((timeStamp) => {
 		t = timeStamp;
 
-		for (let i = 0; i < 16; i++) {
+		for (let i = 0; i < 4; i++) {
 			const p = uniformLocations_rp[i];
 			const r = uniformLocations_rr[i];
 			const ripple = ripples[i];
