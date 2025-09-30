@@ -254,14 +254,12 @@ void main() {
 }
 `;
 
-const params = getUrlParams();
-
 const { gl, program, render } = makeGl(canvas, VERTEX_SHADER, FRAGMENT_SHADER, 30);
 
 const u_seed = gl.getUniformLocation(program, 'u_seed');
 const u_divisions = gl.getUniformLocation(program, 'u_divisions');
 gl.uniform1f(u_seed, 1000);
-gl.uniform1f(u_divisions, params.divisions ?? 40);
+gl.uniform1f(u_divisions, getUrlParam('divisions', 'int') ?? 40);
 
 let ripples = [];
 const LIFE_TIME = 1000 * 2;
@@ -284,6 +282,7 @@ const textureUrls = [
 	'./assets/symbols/dot.png',
 	'./assets/symbols/dots.png',
 	'./assets/symbols/dots3.png',
+
 	'./assets/symbols/o1.png',
 	'./assets/symbols/o2.png',
 	'./assets/symbols/o3.png',
@@ -296,19 +295,23 @@ const textureUrls = [
 	'./assets/symbols/slash2.png',
 	'./assets/symbols/corner.png',
 	'./assets/symbols/block.png',
+
+	...(getUrlParam('numbers', 'bool') ? [
+		'./assets/chars/0.png',
+		'./assets/chars/1.png',
+		'./assets/chars/2.png',
+		'./assets/chars/3.png',
+		'./assets/chars/4.png',
+		'./assets/chars/5.png',
+		'./assets/chars/6.png',
+		'./assets/chars/7.png',
+		'./assets/chars/8.png',
+		'./assets/chars/9.png',
+	] : []),
+
 	'./assets/symbols/square-slash.png',
 	'./assets/symbols/stripe.png',
 	'./assets/symbols/fill.png',
-	//'./assets/chars/0.png',
-	//'./assets/chars/1.png',
-	//'./assets/chars/2.png',
-	//'./assets/chars/3.png',
-	//'./assets/chars/4.png',
-	//'./assets/chars/5.png',
-	//'./assets/chars/6.png',
-	//'./assets/chars/7.png',
-	//'./assets/chars/8.png',
-	//'./assets/chars/9.png',
 ];
 
 const u_texturesCount = gl.getUniformLocation(program, 'u_texturesCount');
