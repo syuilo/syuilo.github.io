@@ -215,7 +215,7 @@ void main() {
 		out_color = texture(u_textures, vec3(transformedCoords, texSelector * float(u_texturesCount - 1)));
 
 		if (colorNoise > 0.9) {
-			out_color.g *= 0.3;
+			out_color.g *= 0.4;
 			out_color.b = 0.0;
 		//} else if (colorNoise > 0.85) {
 		//	out_color.b = 0.0;
