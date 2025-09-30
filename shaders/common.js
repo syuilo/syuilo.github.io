@@ -130,7 +130,7 @@ async function createTextureArrayFromUrls(gl, width, height, urls) {
 	return texture;
 }
 
-function makeGl(canvas, vertexShader, fragmentShader) {
+function makeGl(canvas, vertexShader, fragmentShader, fps = null) {
 	const pixelRatio = getUrlParam('pixelRatio', 'number') ?? window.devicePixelRatio;
 
 	let width = canvas.offsetWidth;
@@ -173,17 +173,19 @@ function makeGl(canvas, vertexShader, fragmentShader) {
 
 	let hook;
 
-	function render(frame) {
+	function render(timeStamp) {
 		// debug
-		//const timeStamp = 604800000 + initialTime + frame;
-		const timeStamp = initialTime + frame;
-		gl.uniform1i(u_time, timeStamp);
+		//const timeStamp = 604800000 + initialTime + timeStamp;
+		const t = initialTime + timeStamp;
+		gl.uniform1i(u_time, t);
 
-		if (hook) hook(timeStamp);
+		if (hook) hook(t);
 
 		gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-		window.requestAnimationFrame(render);
+		if (fps == null) {
+			window.requestAnimationFrame(render);
+		}
 	}
 
 	window.addEventListener('resize', () => {
@@ -209,7 +211,14 @@ function makeGl(canvas, vertexShader, fragmentShader) {
 		program: shaderProgram,
 		render: (cb) => {
 			hook = cb;
-			window.requestAnimationFrame(render);
+
+			if (fps) {
+				window.setInterval(() => {
+					render(performance.now());
+				}, 1000 / fps);
+			} else {
+				window.requestAnimationFrame(render);
+			}
 		},
 	};
 }

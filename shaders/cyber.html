@@ -109,6 +109,8 @@ void main() {
 	vec2 centeredUv = (in_uv - vec2(0.5, 0.5)) * vec2(x_ratio, y_ratio);
 	vec2 uv = centeredUv;
 
+	vec2 scroll = vec2(0.0, -time * 0.0002);
+
 	vec2 cellSize = vec2(1.0 / u_divisions, 1.0 / u_divisions);
 
 	float border = 0.25;
@@ -146,7 +148,7 @@ void main() {
 	float ripple = getRipple(cellUv);
 	float pointerForce = getPointerForce(cellUv);
 
-	float texSelector = snoise0to1(vec3(cellUv * 3.0, time * 0.00002));
+	float texSelector = snoise0to1(vec3((cellUv * 3.0) + scroll, time * 0.00002));
 	if (ripple > 0.5) {
 		texSelector += 0.25;
 		//texSelector *= 1.5;
@@ -165,7 +167,7 @@ void main() {
 		scale = 1.0;
 	}
 
-	float visibilityNoiseA = snoise0to1(vec3(cellUv, time * 0.0000125));
+	float visibilityNoiseA = snoise0to1(vec3(cellUv + scroll, time * 0.0000125));
 	float visibilityNoiseB = snoise0to1(vec3(cellUv * 8.0, time * 0.0000125));
 	float threshold = 0.65;
 	if (ripple > 0.5) threshold -= 0.1;
@@ -175,7 +177,7 @@ void main() {
 	//	visibility = 0.2;
 	//}
 
-	float colorNoise = snoise0to1(vec3(cellUv * 8.0, time * 0.00005));
+	float colorNoise = snoise0to1(vec3((cellUv * 8.0) + scroll, time * 0.00005));
 
 	//out_color = vec4(vec3(texSelector), 1.0);
 	//return;
@@ -254,7 +256,7 @@ void main() {
 
 const params = getUrlParams();
 
-const { gl, program, render } = makeGl(canvas, VERTEX_SHADER, FRAGMENT_SHADER);
+const { gl, program, render } = makeGl(canvas, VERTEX_SHADER, FRAGMENT_SHADER, 30);
 
 const u_seed = gl.getUniformLocation(program, 'u_seed');
 const u_divisions = gl.getUniformLocation(program, 'u_divisions');
